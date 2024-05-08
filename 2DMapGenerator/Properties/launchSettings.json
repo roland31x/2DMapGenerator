@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "2DMapGenerator (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "2DMapGenerator (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
