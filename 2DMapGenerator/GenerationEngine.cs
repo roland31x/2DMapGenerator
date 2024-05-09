@@ -49,17 +49,10 @@ namespace _2DMapGenerator
         private bool _forceStop = false;
 
         private string _status = "Idle";
-        private string Status
+        private void SetStatus(string newstatus)
         {
-            get
-            {
-                return _status;
-            }
-            set
-            {
-                _status = value;
-                InfoEvent?.Invoke(this, new InfoEventArgs(_status));
-            }
+            _status = newstatus;
+            InfoEvent?.Invoke(this, new InfoEventArgs(_status));
         }
 
         private Map _map;
@@ -100,6 +93,7 @@ namespace _2DMapGenerator
                 if (!_working)
                 {
                     _seed = value;
+                    InfoEvent?.Invoke(this, new InfoEventArgs("Seed changed to " + _seed));
                 }
                 else
                 {
@@ -124,6 +118,7 @@ namespace _2DMapGenerator
                     {
                         InfoEvent?.Invoke(this, new InfoEventArgs("Height cannot be less than 10!"));
                     }
+                    InfoEvent?.Invoke(this, new InfoEventArgs("Height changed to " + _height));
                 }
                 else
                 {
@@ -147,6 +142,7 @@ namespace _2DMapGenerator
                     {
                         InfoEvent?.Invoke(this, new InfoEventArgs("Width cannot be less than 10!"));
                     }
+                    InfoEvent?.Invoke(this, new InfoEventArgs("Width changed to " + _width));
                 }
                 else
                 {
