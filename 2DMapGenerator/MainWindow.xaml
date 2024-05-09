@@ -57,7 +57,8 @@
                              RelativePanel.Below="SeedBlock"
                              RelativePanel.AlignHorizontalCenterWith="SeedBlock"
                              PlaceholderText="random if empty"
-                             Width="170"></TextBox>
+                             Width="170"
+                             TextChanged="SeedBox_TextChanged"></TextBox>
                 </RelativePanel>
 
                 <RelativePanel x:Name="ButtonPanel"

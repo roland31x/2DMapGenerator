@@ -93,6 +93,7 @@ namespace _2DMapGenerator
                 if (!_working)
                 {
                     _seed = value;
+                    InfoEvent?.Invoke(this, new InfoEventArgs("Seed changed to " + _seed));
                 }
                 else
                 {
@@ -117,6 +118,7 @@ namespace _2DMapGenerator
                     {
                         InfoEvent?.Invoke(this, new InfoEventArgs("Height cannot be less than 10!"));
                     }
+                    InfoEvent?.Invoke(this, new InfoEventArgs("Height changed to " + _height));
                 }
                 else
                 {
@@ -140,6 +142,7 @@ namespace _2DMapGenerator
                     {
                         InfoEvent?.Invoke(this, new InfoEventArgs("Width cannot be less than 10!"));
                     }
+                    InfoEvent?.Invoke(this, new InfoEventArgs("Width changed to " + _width));
                 }
                 else
                 {
