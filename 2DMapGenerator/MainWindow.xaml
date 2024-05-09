@@ -8,7 +8,114 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Button x:Name="myButton" Click="myButton_Click">Click Me</Button>
-    </StackPanel>
+    <Grid Background="#323232">
+        <RelativePanel>
+            <RelativePanel x:Name="LeftPanel"
+                           RelativePanel.LeftOf="MiddlePanel"
+                           RelativePanel.AlignVerticalCenterWith="MiddlePanel"
+                           Width="160"
+                           Margin="0,0,10,0">
+                <StackPanel HorizontalAlignment="Center">
+
+                    <TextBlock Width="160"
+                               TextAlignment="Center"
+                               Text="Height">
+                    </TextBlock>
+                    <TextBox x:Name="HeightBox" 
+                             Width="160"
+                             Text="600"
+                             TextChanged="HeightBox_TextChanged">
+
+                    </TextBox>
+
+                    <TextBlock Width="160"
+                               TextAlignment="Center"
+                               Text="Width">
+                    </TextBlock>
+                    <TextBox x:Name="WidthBox"
+                             Width="160"
+                             Text="600"
+                             TextChanged="WidthBox_TextChanged">
+                        
+                    </TextBox>
+                    
+                </StackPanel>
+                
+            </RelativePanel>
+            <RelativePanel x:Name="MiddlePanel"
+                           RelativePanel.AlignHorizontalCenterWithPanel="True"
+                           RelativePanel.AlignVerticalCenterWithPanel="True">
+                <RelativePanel RelativePanel.Above="MapContainer"
+                               RelativePanel.LeftOf="ButtonPanel"
+                               Margin="0,0,20,20">
+                    <TextBlock x:Name="SeedBlock"
+                               Text="Seed:"
+                               RelativePanel.AlignHorizontalCenterWithPanel="True"
+                               FontSize="18"
+                               Margin="0,0,10,0"></TextBlock>
+                    <TextBox x:Name="SeedBox"
+                             RelativePanel.Below="SeedBlock"
+                             RelativePanel.AlignHorizontalCenterWith="SeedBlock"
+                             PlaceholderText="random if empty"
+                             Width="170"></TextBox>
+                </RelativePanel>
+
+                <RelativePanel x:Name="ButtonPanel"
+                               RelativePanel.Above="MapContainer"
+                               RelativePanel.AlignHorizontalCenterWithPanel="True">
+                    <Button x:Name="GenerateButton"
+                            Background="#afdb74"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Foreground="Black"
+                            Content="Generate"
+                            Margin="0,0,0,15"
+                            Padding="12"
+                            Click="GenerateButton_Click">
+
+                    </Button>
+
+                    <Button x:Name="StopButton"
+                            Background="Crimson"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Foreground="Black"
+                            Content="Force Stop"
+                            Margin="0,0,0,15"
+                            Padding="12"
+                            Visibility="Collapsed"
+                            Click="StopButton_Click">
+
+                    </Button>
+                </RelativePanel>
+                
+
+                <ScrollViewer x:Name="MapContainer"
+                              BorderBrush="Blue"
+                              BorderThickness="4"
+                              Background="Red"
+                              RelativePanel.AlignHorizontalCenterWithPanel="True"
+                              RelativePanel.AlignVerticalCenterWithPanel="True"
+                              Height="600"
+                              Width="600"
+                              CornerRadius="10">
+
+                </ScrollViewer>
+
+                <TextBox x:Name="InfoBlock"
+                            Text="App is idle..."
+                            Margin="0,10,0,0"
+                            RelativePanel.Below="MapContainer"
+                            RelativePanel.AlignLeftWith="MapContainer"
+                            IsEnabled="False"
+                            FontSize="18"
+                            TextAlignment="Center"
+                            Foreground="White"
+                            Width="600"
+                            TextChanged="SeedBox_TextChanged"></TextBox>
+
+                </RelativePanel>
+        </RelativePanel>
+        
+    </Grid>
 </Window>
