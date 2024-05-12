@@ -92,9 +92,9 @@
                 
 
                 <ScrollViewer x:Name="MapContainer"
-                              BorderBrush="Blue"
+                              BorderBrush="DarkGoldenrod"
                               BorderThickness="4"
-                              Background="Red"
+                              Background="Gainsboro"
                               RelativePanel.AlignHorizontalCenterWithPanel="True"
                               RelativePanel.AlignVerticalCenterWithPanel="True"
                               Height="600"

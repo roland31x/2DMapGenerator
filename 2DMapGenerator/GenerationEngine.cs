@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation.Metadata;
 
@@ -170,7 +171,7 @@ namespace _2DMapGenerator
             if (!_working)
             {
                 Working = true;
-
+                CancellationToken tk = new CancellationToken();
                 Map generated = await Task.Run(() => GenerateMap());
                 GeneratedMap = generated;
 
@@ -197,16 +198,13 @@ namespace _2DMapGenerator
         
         private async Task<Map> GenerateMap()
         {
-
             int width = Width;
             int height = Height;
-            float frequency = 0.01f;
 
             PerlinNoiseGenerator pg = PerlinNoiseGenerator.Create(Seed);
-            float[,] perlinMap = pg.ComputePerlinNoiseMap(width, height, frequency);
+            Map perlinMap = await pg.ComputePerlinNoiseMapAsync(width, height, 6);
 
-            Map noiseMap = new Map(perlinMap);
-            return noiseMap;
+            return perlinMap;
 
         }
 
@@ -215,36 +213,36 @@ namespace _2DMapGenerator
     public class Map
     {
 
-        public float[,] map;
+        float[,] map;
         public int Height
-        {
-            get
-            {
-                return map.GetLength(1);
-            }
-        }
-        public int Width
         {
             get
             {
                 return map.GetLength(0);
             }
         }
+        public int Width
+        {
+            get
+            {
+                return map.GetLength(1);
+            }
+        }
         public float this[int x, int y]
         {
             get
             {
-                return map[x, y];
+                return map[y, x];
             }
             set
             {
-                map[x,y] = value;
+                map[y, x] = value;
             }
         }
 
-        public Map(float[,] map)
+        public Map(int width, int height)
         { 
-            this.map = map; 
+            this.map = new float[height, width];
         }
     }
 

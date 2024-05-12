@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace _2DMapGenerator
 {
@@ -33,7 +34,7 @@ namespace _2DMapGenerator
 
             List<int> generated = new List<int>();
 
-            while (n > 1)
+            while (n > 0)
             {
                 n--;
                 int k = rng.Next(n + 1);
@@ -45,12 +46,12 @@ namespace _2DMapGenerator
             permutation = generated.ToArray();
         }
 
-        private static double Fade(double t)
+        private double Fade(double t)
         {
             return t * t * t * (t * (t * 6 - 15) + 10);
         }
 
-        private static double Lerp(double t, double a, double b)
+        private double Lerp(double t, double a, double b)
         {
             return a + t * (b - a);
         }
@@ -72,8 +73,8 @@ namespace _2DMapGenerator
         }
         public float ComputePerlinNoise(float x, float y)
         {
-            int X = (int)Math.Floor(x) & 255;
-            int Y = (int)Math.Floor(y) & 255;
+            int X = (int)Math.Floor(x) % 255;
+            int Y = (int)Math.Floor(y) % 255;
 
             double xf = x - Math.Floor(x);
             double yf = y - Math.Floor(y);
@@ -87,10 +88,17 @@ namespace _2DMapGenerator
             Vector2 bottomRight = new Vector2(xf - 1.0, yf);
             Vector2 bottomLeft = new Vector2(xf, yf);
 
-            Vector2 constantVectorTopRight = GetConstantVector(permutation[(permutation[X + 1] + Y + 1) % 255]);
-            Vector2 constantVectorTopLeft = GetConstantVector(permutation[(permutation[X] + Y + 1) % 255]);
-            Vector2 constantVectorBottomRight = GetConstantVector(permutation[(permutation[X + 1] + Y) % 255]);
-            Vector2 constantVectorBottomLeft = GetConstantVector(permutation[(permutation[X] + Y) % 255]);
+            int tr = permutation[X + 1] + Y + 1;
+            Vector2 constantVectorTopRight = GetConstantVector(permutation[tr % 255]);
+
+            int tl = permutation[X] + Y + 1;
+            Vector2 constantVectorTopLeft = GetConstantVector(permutation[tl % 255]);
+
+            int br = permutation[X + 1] + Y;
+            Vector2 constantVectorBottomRight = GetConstantVector(permutation[br % 255]);
+
+            int bl = permutation[X] + Y;
+            Vector2 constantVectorBottomLeft = GetConstantVector(permutation[bl % 255]);
 
             double dotTopRight = topRight.Dot(constantVectorTopRight);
             double dotTopLeft = topLeft.Dot(constantVectorTopLeft);
@@ -104,7 +112,7 @@ namespace _2DMapGenerator
 
 
 
-            return (float)result * 0.5f + 0.5f;
+            return (float)result;
             
         }
 
@@ -126,15 +134,36 @@ namespace _2DMapGenerator
             return result;
         }
 
-        public float[,] ComputePerlinNoiseMap(int width, int height, float scale)
+        public Task<Map> ComputePerlinNoiseMapAsync(int width, int height, int smoothness)
         {
-            float[,] noiseMap = new float[height, width];
+            Map map = new Map(width, height);
 
-            for (int y = 0; y < height; y++)
+            float minsofar = float.MaxValue;
+            float maxsofar = float.MinValue;
+
+            Parallel.For(0, height, y =>
+            {
                 for (int x = 0; x < width; x++)
-                    noiseMap[y, x] = FractalBrownianMotion(x, y, 5);
+                {
+                    map[x, y] = FractalBrownianMotion(x, y, smoothness);
+                    if (map[x, y] < minsofar)
+                        minsofar = map[x, y];
+                    if (map[x, y] > maxsofar)
+                        maxsofar = map[x, y];
+                }
+            });
 
-            return noiseMap;
+            //float range = maxsofar - minsofar;
+
+            //Parallel.For(0, height, y =>
+            //{
+            //    for (int x = 0; x < width; x++)
+            //    {
+            //        map[x, y] = (map[x, y] - minsofar) / range;
+            //    }
+            //});
+
+            return Task.FromResult(map);
         }
 
         public static PerlinNoiseGenerator Create(int seed)
