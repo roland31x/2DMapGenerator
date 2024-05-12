@@ -194,49 +194,114 @@ namespace _2DMapGenerator
             }
         }
 
-        private async Task<Map> GenerateMap()
+        public class PerlinNoise
         {
-            Map generated = new Map(Width, Height);
-            Random random = new Random(Seed);
-            
-            for(int y = 0; y < Height; y++)
+            public struct Vector2
             {
-                for(int x = 0; x < Width; x++)
-                {
-                    if (_forceStop)
-                    {
-                        return null;
-                    }
-
-                    generated[x, y] = random.NextDouble();
-                    SetStatus(((double)(x * y) / (double)(Width * Height)) * 100.0);
-                }
+                public float x, y;
+            }
+            private static float Smoothstep(float t)
+            {
+                // Smoothstep interpolation function
+                return t * t * (3 - 2 * t);
             }
 
-            return generated;
+            private static float Interpolate(float a0, float a1, float w)
+            {
+                // Smoothstep interpolation between a0 and a1
+                return a0 + Smoothstep(w) * (a1 - a0);
+            }
+
+            private static Vector2 RandomGradient(int ix, int iy, int seed)
+            {
+                // Use a hash function to generate a pseudo-random angle based on the coordinates and seed
+                int hash = (1619 * ix + 31337 * iy + 1013 * seed) & 0x7fffffff; // Example hash function
+                float randomAngle = (float)((float)hash / 0x7fffffff * 2 * Math.PI); // Convert hash to angle in radians
+
+                // Convert angle to unit vector
+                Vector2 gradient;
+                gradient.x = (float)Math.Cos(randomAngle);
+                gradient.y = (float)Math.Sin(randomAngle);
+
+                return gradient;
+            }
+
+            private static float DotGridGradient(int ix, int iy, float x, float y, int seed)
+            {
+                // Get gradient from integer coordinates
+                Vector2 gradient = RandomGradient(ix, iy, seed);
+
+                // Compute the distance vector
+                float dx = x - ix;
+                float dy = y - iy;
+
+                // Compute the dot-product
+                return (dx * gradient.x + dy * gradient.y);
+            }
+
+            public static float[,] ComputePerlinNoiseMap(int width, int height, float scale, int seed)
+            {
+                float[,] noiseMap = new float[height, width];
+
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        float xCoord = (float)x / width * scale;
+                        float yCoord = (float)y / height * scale;
+                        noiseMap[y, x] = ComputePerlinNoise(xCoord, yCoord, seed);
+                    }
+                }
+
+                return noiseMap;
+            }
+
+            public static float ComputePerlinNoise(float x, float y, int seed)
+            {
+                // Determine grid cell coordinates
+                int x0 = (int)Math.Floor(x);
+                int x1 = x0 + 1;
+                int y0 = (int)Math.Floor(y);
+                int y1 = y0 + 1;
+
+                // Determine interpolation weights
+                // Could also use higher order polynomial/s-curve here
+                float sx = x - x0;
+                float sy = y - y0;
+
+                // Interpolate between grid point gradients
+                float n0, n1, ix0, ix1, value;
+
+                n0 = DotGridGradient(x0, y0, x, y, seed);
+                n1 = DotGridGradient(x1, y0, x, y, seed);
+                ix0 = Interpolate(n0, n1, sx);
+
+                n0 = DotGridGradient(x0, y1, x, y, seed);
+                n1 = DotGridGradient(x1, y1, x, y, seed);
+                ix1 = Interpolate(n0, n1, sx);
+
+                value = Interpolate(ix0, ix1, sy);
+                return value; // Will return in range -1 to 1. To make it in range 0 to 1, multiply by 0.5 and add 0.5
+            }
+        }
+        private async Task<Map> GenerateMap()
+        {
+            int width = 100;
+            int height = 100;
+            float scale = 2.0f;
+            int seed = 12345;
+
+            Map noiseMap = new Map(PerlinNoise.ComputePerlinNoiseMap(width, height, scale, seed));
+            return noiseMap;
         }
 
     }
     public class Map
     {
-        private double[,] map;
-
-        public int Width { get { return map.GetLength(0); } }
-        public int Height { get { return map.GetLength(1); } }
-        public double this[int x, int y]
-        {
-            get
-            {
-                return map[x, y];
-            }
-            set
-            {
-                map[x, y] = value;
-            }
-        }
-        public Map(int w, int h)
-        {
-            map = new double[w, h];
+        public float[,] map;
+        public Map(float[,] map)
+        { 
+            this.map = map; 
         }
     }
 
