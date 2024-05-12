@@ -153,16 +153,6 @@ namespace _2DMapGenerator
                 }
             });
 
-            //float range = maxsofar - minsofar;
-
-            //Parallel.For(0, height, y =>
-            //{
-            //    for (int x = 0; x < width; x++)
-            //    {
-            //        map[x, y] = (map[x, y] - minsofar) / range;
-            //    }
-            //});
-
             return Task.FromResult(map);
         }
 
