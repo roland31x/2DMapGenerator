@@ -102,8 +102,28 @@ namespace _2DMapGenerator
                 Lerp(v, dotBottomRight, dotTopRight)
             );
 
+
+
             return (float)result * 0.5f + 0.5f;
             
+        }
+
+        public float FractalBrownianMotion(float x, float y, int numOctaves)
+        {
+            float result = 0.0f;
+            float amplitude = 1.0f;
+            float frequency = 0.005f;
+
+            for (int octave = 0; octave < numOctaves; octave++)
+            {
+                float n = amplitude * ComputePerlinNoise(x * frequency, y * frequency);
+                result += n;
+
+                amplitude *= 0.5f;
+                frequency *= 2.0f;
+            }
+
+            return result;
         }
 
         public float[,] ComputePerlinNoiseMap(int width, int height, float scale)
@@ -112,7 +132,7 @@ namespace _2DMapGenerator
 
             for (int y = 0; y < height; y++)
                 for (int x = 0; x < width; x++)
-                    noiseMap[y, x] = ComputePerlinNoise(x * scale, y * scale);
+                    noiseMap[y, x] = FractalBrownianMotion(x, y, 5);
 
             return noiseMap;
         }
