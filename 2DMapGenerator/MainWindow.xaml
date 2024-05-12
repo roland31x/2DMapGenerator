@@ -99,8 +99,15 @@
                               RelativePanel.AlignVerticalCenterWithPanel="True"
                               Height="600"
                               Width="600"
-                              CornerRadius="10">
-
+                              CornerRadius="10"
+                              HorizontalScrollMode="Enabled"
+                              VerticalScrollMode="Enabled"
+                              HorizontalScrollBarVisibility="Hidden"
+                              VerticalScrollBarVisibility="Hidden"
+                              PointerPressed="MapContainer_PointerPressed"
+                              PointerReleased="MapContainer_PointerReleased"
+                              PointerMoved="MapContainer_PointerMoved">
+                    <Image x:Name="MapImg" />
                 </ScrollViewer>
 
                 <TextBox x:Name="InfoBlock"

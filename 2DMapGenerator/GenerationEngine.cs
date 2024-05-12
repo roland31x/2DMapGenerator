@@ -48,11 +48,17 @@ namespace _2DMapGenerator
 
         private bool _forceStop = false;
 
-        private string _status = "Idle";
-        private void SetStatus(string newstatus)
+        private double _status = 0;
+        private int _percent = 0;
+        private void SetStatus(double newstatus)
         {
             _status = newstatus;
-            InfoEvent?.Invoke(this, new InfoEventArgs(_status));
+            if (_status - _percent > 1)
+            {
+                _percent = (int)_status;
+                InfoEvent?.Invoke(this, new InfoEventArgs("Generation status: " + _percent + "%"));
+            }
+           
         }
 
         private Map _map;
@@ -155,7 +161,8 @@ namespace _2DMapGenerator
 
         private GenerationEngine()
         {
-
+            Height = 600;
+            Width = 600;
         }
 
         public async void StartGenerate()
@@ -189,15 +196,48 @@ namespace _2DMapGenerator
 
         private async Task<Map> GenerateMap()
         {
-            await Task.Delay(2500);
+            Map generated = new Map(Width, Height);
+            Random random = new Random(Seed);
+            
+            for(int y = 0; y < Height; y++)
+            {
+                for(int x = 0; x < Width; x++)
+                {
+                    if (_forceStop)
+                    {
+                        return null;
+                    }
 
-            return new Map();
+                    generated[x, y] = random.NextDouble();
+                    SetStatus(((double)(x * y) / (double)(Width * Height)) * 100.0);
+                }
+            }
+
+            return generated;
         }
 
     }
     public class Map
     {
-        public int[,] map;
+        private double[,] map;
+
+        public int Width { get { return map.GetLength(0); } }
+        public int Height { get { return map.GetLength(1); } }
+        public double this[int x, int y]
+        {
+            get
+            {
+                return map[x, y];
+            }
+            set
+            {
+                map[x, y] = value;
+            }
+        }
+        public Map(int w, int h)
+        {
+            map = new double[w, h];
+        }
     }
 
     public class InfoEventArgs : EventArgs
