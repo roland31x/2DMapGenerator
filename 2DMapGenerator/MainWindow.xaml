@@ -50,6 +50,18 @@
 
                     </TextBox>
 
+                    <TextBlock Width="160"
+                               TextAlignment="Center"
+                               Text="Colors:">
+                    </TextBlock>
+                    <ComboBox x:Name="ColorBox"
+                              Width="160"
+                              SelectionChanged="ColorBox_SelectionChanged">
+                        <ComboBoxItem Content="Grayscale" />
+                        <ComboBoxItem Content="Terrain" />
+                        <ComboBoxItem Content="Antique" />
+                    </ComboBox>
+
                 </StackPanel>
                 
             </RelativePanel>

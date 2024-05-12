@@ -36,12 +36,19 @@ namespace _2DMapGenerator
         double heldy = 0;
         double horzoff = 0;
         double vertoff = 0;
+
+        ColorPalette selected = new GrayscalePalette();
+
         public MainWindow()
         {
             this.InitializeComponent();
             this.engine.InfoEvent += OnInfoEvent;
             this.engine.GenerationStarted += OnGenerationStarted;
             this.engine.GenerationFinished += OnGenerationFinished;
+            (this.ColorBox.Items[0] as ComboBoxItem).Tag = new GrayscalePalette();
+            (this.ColorBox.Items[1] as ComboBoxItem).Tag = new HeightMapPalette();
+            (this.ColorBox.Items[2] as ComboBoxItem).Tag = new AntiquePalette();
+            this.ColorBox.SelectedIndex = 0;
         }
 
         private async void OnGenerationFinished(object sender, EventArgs e)
@@ -56,6 +63,9 @@ namespace _2DMapGenerator
 
         private async Task RenderMap(Map map)
         {
+            if(map == null)
+                return;
+
             int height = map.Height;
             int width = map.Width;
             byte[] pixelData = new byte[width * height * 4];
@@ -65,7 +75,7 @@ namespace _2DMapGenerator
                 for (int x = 0; x < width; x++)
                 {
 
-                    Color color = GetColor(map[x,y]);
+                    Color color = selected.GetColor(map[x,y]);
                     int pixelIndex = (y * width + x) * 4;
                     pixelData[pixelIndex] = color.B;
                     pixelData[pixelIndex + 1] = color.G;
@@ -82,17 +92,6 @@ namespace _2DMapGenerator
             MapImg.Source = bitmap;
             MapImg.Height = height;
             MapImg.Width = width;
-        }
-
-        Color GetColor(float number)
-        {
-            return new Color()
-            {
-                R = (byte)(number * 255),
-                G = (byte)(number * 255),
-                B = (byte)(number * 255),
-                A = 255,
-            };
         }
 
         private void OnGenerationStarted(object sender, EventArgs e)
@@ -135,6 +134,13 @@ namespace _2DMapGenerator
                     InfoBlock.Text = e.Info;
                 });
             }
+        }
+
+
+        private async void ColorBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            this.selected = (ColorPalette)(ColorBox.SelectedItem as ComboBoxItem).Tag;
+            await RenderMap(engine.GeneratedMap);
         }
 
         private void RoughnessBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -203,6 +209,7 @@ namespace _2DMapGenerator
             hovered = false;
             MainGrid.InputCursor = InputSystemCursor.Create(InputSystemCursorShape.Arrow);
         }
+
     }
 
     public class CustomGrid : Grid
