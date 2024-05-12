@@ -84,6 +84,10 @@ namespace _2DMapGenerator
 
         Color GetColor(float number)
         {
+            if(number != 0)
+            {
+                int x = 0;
+            }
             return new Color()
             {
                 R = (byte)(number * 255),
