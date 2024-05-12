@@ -200,10 +200,9 @@ namespace _2DMapGenerator
 
             int width = Width;
             int height = Height;
-            float scale = 6.0f;
-            int seed = 12345543;
+            float frequency = 0.1f;
 
-            Map noiseMap = new Map(PerlinNoise.ComputePerlinNoiseMap(width, height));
+            Map noiseMap = new Map(PerlinNoise.ComputePerlinNoiseMap(width, height, frequency));
             return noiseMap;
 
         }
