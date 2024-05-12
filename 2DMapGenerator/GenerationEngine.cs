@@ -120,11 +120,13 @@ namespace _2DMapGenerator
             {
                 if (!_working)
                 {
-                    _height = value;
-                    if(_height < 10)
+                    if(value < 10)
                     {
                         InfoEvent?.Invoke(this, new InfoEventArgs("Height cannot be less than 10!"));
+                        return;
                     }
+
+                    _height = value;
                     InfoEvent?.Invoke(this, new InfoEventArgs("Height changed to " + _height));
                 }
                 else
@@ -143,12 +145,13 @@ namespace _2DMapGenerator
             set
             {
                 if (!_working)
-                {
-                    _width = value;
-                    if (_width < 10)
+                {                
+                    if (value < 10)
                     {
                         InfoEvent?.Invoke(this, new InfoEventArgs("Width cannot be less than 10!"));
+                        return;
                     }
+                    _width = value;
                     InfoEvent?.Invoke(this, new InfoEventArgs("Width changed to " + _width));
                 }
                 else
@@ -158,12 +161,46 @@ namespace _2DMapGenerator
             }
         }
 
-#endregion
+        private int _rough;
+        public int Roughness
+        {
+            get
+            {
+                return _rough;
+            }
+            set
+            {
+                if (!_working)
+                {
+
+                    if(value < 1)
+                    {
+                        InfoEvent?.Invoke(this, new InfoEventArgs("Roughness cannot be less than 1!"));
+                        return;
+                    }
+                    if(value > 10)
+                    {
+                        InfoEvent?.Invoke(this, new InfoEventArgs("Roughness cannot be more than 10!"));
+                        return;
+                    }
+                    _rough = value;
+                    InfoEvent?.Invoke(this, new InfoEventArgs("Roughness changed to " + _rough));
+                }
+                else
+                {
+                    InfoEvent?.Invoke(this, new InfoEventArgs("Cannot change smoothness while working..."));
+                }
+            }
+        }
+
+        #endregion
 
         private GenerationEngine()
         {
             Height = 600;
             Width = 600;
+            Seed = 0;
+            Roughness = 6;
         }
 
         public async void StartGenerate()
@@ -171,10 +208,10 @@ namespace _2DMapGenerator
             if (!_working)
             {
                 Working = true;
-                CancellationToken tk = new CancellationToken();
+                InfoEvent?.Invoke(this, new InfoEventArgs("Generation started!"));
                 Map generated = await Task.Run(() => GenerateMap());
                 GeneratedMap = generated;
-
+                InfoEvent?.Invoke(this, new InfoEventArgs("Generation finished!"));
                 Working = false;
             }
             else
@@ -200,12 +237,15 @@ namespace _2DMapGenerator
         {
             int width = Width;
             int height = Height;
+            int roughness = Roughness;
+
+            //if(Seed == 0)
+            //    Seed = new Random().Next();
 
             PerlinNoiseGenerator pg = PerlinNoiseGenerator.Create(Seed);
-            Map perlinMap = await pg.ComputePerlinNoiseMapAsync(width, height, 6);
+            Map perlinMap = await pg.ComputePerlinNoiseMapAsync(width, height, roughness);
 
             return perlinMap;
-
         }
 
     }

@@ -1,3 +1,4 @@
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -30,6 +31,7 @@ namespace _2DMapGenerator
     {
         GenerationEngine engine = GenerationEngine.Singleton;
         bool held = false;
+        bool hovered = false;
         double heldx = 0;
         double heldy = 0;
         double horzoff = 0;
@@ -84,10 +86,6 @@ namespace _2DMapGenerator
 
         Color GetColor(float number)
         {
-            if(number != 0)
-            {
-                int x = 0;
-            }
             return new Color()
             {
                 R = (byte)(number * 255),
@@ -139,6 +137,14 @@ namespace _2DMapGenerator
             }
         }
 
+        private void RoughnessBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if(int.TryParse(RoughnessBox.Text, out int roughness))
+            {
+                engine.Roughness = roughness;
+            }
+        }
+
         private void HeightBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if(int.TryParse(HeightBox.Text, out int height))
@@ -162,11 +168,17 @@ namespace _2DMapGenerator
             heldy = e.GetCurrentPoint(MapContainer).Position.Y;
             horzoff = MapContainer.HorizontalOffset;
             vertoff = MapContainer.VerticalOffset;
+            MainGrid.InputCursor = InputSystemCursor.Create(InputSystemCursorShape.SizeAll);
         }
 
         private void MapContainer_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
             held = false;
+            if (hovered)
+                MainGrid.InputCursor = InputSystemCursor.Create(InputSystemCursorShape.Hand);
+            else
+                MainGrid.InputCursor = InputSystemCursor.Create(InputSystemCursorShape.Arrow);
+
         }
 
         private void MapContainer_PointerMoved(object sender, PointerRoutedEventArgs e)
@@ -178,6 +190,27 @@ namespace _2DMapGenerator
                 MapContainer.ScrollToHorizontalOffset(horzoff + dx);
                 MapContainer.ScrollToVerticalOffset(vertoff + dy);
             }
+        }
+
+        private void MapContainer_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            hovered = true;
+            MainGrid.InputCursor = InputSystemCursor.Create(InputSystemCursorShape.Hand);
+        }
+
+        private void MapContainer_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            hovered = false;
+            MainGrid.InputCursor = InputSystemCursor.Create(InputSystemCursorShape.Arrow);
+        }
+    }
+
+    public class CustomGrid : Grid
+    {
+        public InputCursor InputCursor
+        {
+            get => ProtectedCursor;
+            set => ProtectedCursor = value;
         }
     }
 }
