@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="#323232">
+    <local:CustomGrid x:Name="MainGrid" Background="#323232">
         <RelativePanel>
             <RelativePanel x:Name="LeftPanel"
                            RelativePanel.LeftOf="MiddlePanel"
@@ -38,7 +38,18 @@
                              TextChanged="WidthBox_TextChanged">
                         
                     </TextBox>
-                    
+
+                    <TextBlock Width="160"
+                               TextAlignment="Center"
+                               Text="Roughness">
+                    </TextBlock>
+                    <TextBox x:Name="RoughnessBox"
+                             Width="160"
+                             Text="6"
+                             TextChanged="RoughnessBox_TextChanged">
+
+                    </TextBox>
+
                 </StackPanel>
                 
             </RelativePanel>
@@ -93,20 +104,22 @@
 
                 <ScrollViewer x:Name="MapContainer"
                               BorderBrush="DarkGoldenrod"
-                              BorderThickness="4"
+                              BorderThickness="2"
                               Background="Gainsboro"
                               RelativePanel.AlignHorizontalCenterWithPanel="True"
                               RelativePanel.AlignVerticalCenterWithPanel="True"
                               Height="600"
                               Width="600"
-                              CornerRadius="10"
+                              CornerRadius="6"
                               HorizontalScrollMode="Enabled"
                               VerticalScrollMode="Enabled"
                               HorizontalScrollBarVisibility="Hidden"
                               VerticalScrollBarVisibility="Hidden"
                               PointerPressed="MapContainer_PointerPressed"
                               PointerReleased="MapContainer_PointerReleased"
-                              PointerMoved="MapContainer_PointerMoved">
+                              PointerMoved="MapContainer_PointerMoved"
+                              PointerEntered="MapContainer_PointerEntered"
+                              PointerExited="MapContainer_PointerExited">
                     <Image x:Name="MapImg" />
                 </ScrollViewer>
 
@@ -125,5 +138,5 @@
                 </RelativePanel>
         </RelativePanel>
         
-    </Grid>
+    </local:CustomGrid>
 </Window>
