@@ -82,7 +82,7 @@ namespace _2DMapGenerator
             MapImg.Width = width;
         }
 
-        Color GetColor(double number)
+        Color GetColor(float number)
         {
             return new Color()
             {
