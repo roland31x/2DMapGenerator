@@ -48,11 +48,17 @@ namespace _2DMapGenerator
 
         private bool _forceStop = false;
 
-        private string _status = "Idle";
-        private void SetStatus(string newstatus)
+        private double _status = 0;
+        private int _percent = 0;
+        private void SetStatus(double newstatus)
         {
             _status = newstatus;
-            InfoEvent?.Invoke(this, new InfoEventArgs(_status));
+            if (_status - _percent > 1)
+            {
+                _percent = (int)_status;
+                InfoEvent?.Invoke(this, new InfoEventArgs("Generation status: " + _percent + "%"));
+            }
+           
         }
 
         private Map _map;
@@ -155,7 +161,8 @@ namespace _2DMapGenerator
 
         private GenerationEngine()
         {
-
+            Height = 600;
+            Width = 600;
         }
 
         public async void StartGenerate()
@@ -279,6 +286,7 @@ namespace _2DMapGenerator
         }
         private async Task<Map> GenerateMap()
         {
+
             int width = 100;
             int height = 100;
             float scale = 2.0f;
@@ -286,15 +294,18 @@ namespace _2DMapGenerator
 
             Map noiseMap = new Map(PerlinNoise.ComputePerlinNoiseMap(width, height, scale, seed));
             return noiseMap;
+
         }
 
     }
     public class Map
     {
+
         public float[,] map;
         public Map(float[,] map)
         { 
             this.map = map; 
+
         }
     }
 
