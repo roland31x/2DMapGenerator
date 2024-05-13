@@ -31,7 +31,7 @@ namespace _2DMapGenerator
         {
             number = Scale(number);
 
-            if (number < 0.3)
+            if (number > 0.7)
             {
                 // Interpolating between yellow and dark brown
                 byte r = 255;
@@ -39,7 +39,7 @@ namespace _2DMapGenerator
                 byte b = 0;
                 return Color.FromArgb(255, r, g, b);
             }
-            else if (number < 0.7)
+            else if (number > 0.5)
             {
                 // Darkening the green towards yellow
                 byte r = (byte)(255 * ((0.7 - number) / 0.4));
@@ -63,17 +63,13 @@ namespace _2DMapGenerator
         public override Color GetColor(float number)
         {
             number = Scale(number);
-            if (number < 0.3)
+            if (number < 0.6)
             {
                 return Color.FromArgb(255, 0, 0, 255);
             }
-            else if (number < 0.6)
-            {
-                return Color.FromArgb(255, 0, 255, 0);
-            }
             else
             {
-                return Color.FromArgb(255, 255, 255, 255);
+                return Color.FromArgb(255, 0, 255, 0);
             }
         }
     }

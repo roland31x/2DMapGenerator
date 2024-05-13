@@ -58,6 +58,7 @@ namespace _2DMapGenerator
             SeedBox.IsEnabled = true;
             HeightBox.IsEnabled = true;
             WidthBox.IsEnabled = true;
+            RoughnessBox.IsEnabled = true;
             await RenderMap(engine.GeneratedMap);
 
             float minzoom = 600f / Math.Min(engine.GeneratedMap.Width, engine.GeneratedMap.Height);
@@ -70,10 +71,11 @@ namespace _2DMapGenerator
             }
             else
             {
+                ZoomModeBox.SelectedIndex = ZoomModeBox.SelectedIndex;
                 ZoomSliderSub.Minimum = minzoom;
                 ZoomSliderSup.Minimum = 1;
             }
-            ZoomModeBox.SelectedIndex = ZoomModeBox.SelectedIndex;
+            
         }
 
         private async Task RenderMap(Map map)
@@ -84,20 +86,19 @@ namespace _2DMapGenerator
             int height = map.Height;
             int width = map.Width;
             byte[] pixelData = new byte[width * height * 4];
-            
-            for (int y = 0; y < height; y++)
+
+            Parallel.For(0, height, y =>
             {
                 for (int x = 0; x < width; x++)
                 {
-
-                    Color color = selected.GetColor(map[x,y]);
+                    Color color = selected.GetColor(map[x, y]);
                     int pixelIndex = (y * width + x) * 4;
                     pixelData[pixelIndex] = color.B;
                     pixelData[pixelIndex + 1] = color.G;
                     pixelData[pixelIndex + 2] = color.R;
                     pixelData[pixelIndex + 3] = color.A;
                 }
-            }
+            });
 
             WriteableBitmap bitmap = new WriteableBitmap(width, height);
             using (Stream stream = bitmap.PixelBuffer.AsStream())
@@ -117,6 +118,7 @@ namespace _2DMapGenerator
             SeedBox.IsEnabled = false;
             HeightBox.IsEnabled = false;
             WidthBox.IsEnabled = false;
+            RoughnessBox.IsEnabled = false;
         }
 
         private void GenerateButton_Click(object sender, RoutedEventArgs e)
