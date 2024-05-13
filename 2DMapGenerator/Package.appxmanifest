@@ -8,15 +8,15 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="4b85d84a-3d16-4eb0-b722-6f47419b97dd"
-    Publisher="CN=rolan"
+    Name="47246roland31x.260965C656BCB"
+    Publisher="CN=9D04748D-B648-4D41-AD6F-98933C74E2B2"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="4b85d84a-3d16-4eb0-b722-6f47419b97dd" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="54f2e4a8-e56e-4d56-9e75-5b175d273e8b" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>2DMapGenerator</DisplayName>
-    <PublisherDisplayName>rolan</PublisherDisplayName>
+    <DisplayName>World Map Generator</DisplayName>
+    <PublisherDisplayName>roland31x</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -34,12 +34,12 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="2DMapGenerator"
+        DisplayName="World Map Generator"
         Description="2DMapGenerator"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"  Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
     </Application>
