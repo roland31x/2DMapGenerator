@@ -17,50 +17,48 @@
                            Margin="0,0,10,0">
                 <StackPanel HorizontalAlignment="Center">
 
+                    <TextBlock TextAlignment="Center"
+                               Text="Parameters:"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="0,0,0,25"/>
+
+                    <TextBlock TextAlignment="Center"
+                               Text="Seed:" />
+                    <TextBox x:Name="SeedBox"
+                             PlaceholderText="random if empty"
+                             Width="160"
+                             TextChanged="SeedBox_TextChanged"
+                             Margin="0,0,0,5" />
+
                     <TextBlock Width="160"
                                TextAlignment="Center"
-                               Text="Height">
-                    </TextBlock>
-                    <TextBox x:Name="HeightBox" 
+                               Text="Height" />
+                    <TextBox x:Name="HeightBox"
                              Width="160"
                              Text="600"
-                             TextChanged="HeightBox_TextChanged">
+                             TextChanged="HeightBox_TextChanged"
+                             Margin="0,0,0,5" />
 
-                    </TextBox>
 
                     <TextBlock Width="160"
                                TextAlignment="Center"
-                               Text="Width">
-                    </TextBlock>
+                               Text="Width" />
                     <TextBox x:Name="WidthBox"
                              Width="160"
                              Text="600"
-                             TextChanged="WidthBox_TextChanged">
-                        
-                    </TextBox>
+                             TextChanged="WidthBox_TextChanged"
+                             Margin="0,0,0,5" />
+
 
                     <TextBlock Width="160"
                                TextAlignment="Center"
-                               Text="Roughness">
-                    </TextBlock>
+                               Text="Roughness" />
                     <TextBox x:Name="RoughnessBox"
                              Width="160"
                              Text="6"
-                             TextChanged="RoughnessBox_TextChanged">
-
-                    </TextBox>
-
-                    <TextBlock Width="160"
-                               TextAlignment="Center"
-                               Text="Colors:">
-                    </TextBlock>
-                    <ComboBox x:Name="ColorBox"
-                              Width="160"
-                              SelectionChanged="ColorBox_SelectionChanged">
-                        <ComboBoxItem Content="Grayscale" />
-                        <ComboBoxItem Content="Terrain" />
-                        <ComboBoxItem Content="Antique" />
-                    </ComboBox>
+                             TextChanged="RoughnessBox_TextChanged"
+                             Margin="0,0,0,5" />
 
                 </StackPanel>
                 
@@ -71,17 +69,7 @@
                 <RelativePanel RelativePanel.Above="MapContainer"
                                RelativePanel.LeftOf="ButtonPanel"
                                Margin="0,0,20,20">
-                    <TextBlock x:Name="SeedBlock"
-                               Text="Seed:"
-                               RelativePanel.AlignHorizontalCenterWithPanel="True"
-                               FontSize="18"
-                               Margin="0,0,10,0"></TextBlock>
-                    <TextBox x:Name="SeedBox"
-                             RelativePanel.Below="SeedBlock"
-                             RelativePanel.AlignHorizontalCenterWith="SeedBlock"
-                             PlaceholderText="random if empty"
-                             Width="170"
-                             TextChanged="SeedBox_TextChanged"></TextBox>
+                    
                 </RelativePanel>
 
                 <RelativePanel x:Name="ButtonPanel"
@@ -147,7 +135,69 @@
                             Width="600"
                             TextChanged="SeedBox_TextChanged"></TextBox>
 
-                </RelativePanel>
+            </RelativePanel>
+            <RelativePanel x:Name="RightPanel"
+                           RelativePanel.RightOf="MiddlePanel"
+                           RelativePanel.AlignVerticalCenterWith="MiddlePanel"
+                           Width="160"
+                           Margin="10,0,0,0">
+                <StackPanel HorizontalAlignment="Center">
+
+                    <TextBlock TextAlignment="Center"
+                               Text="View Settings:"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="0,0,0,25" />
+
+                    <TextBlock Width="160"
+                               TextAlignment="Center"
+                               Text="Colors:" />
+                    <ComboBox x:Name="ColorBox"
+                              Width="160"
+                              SelectionChanged="ColorBox_SelectionChanged"
+                              Margin="0,0,0,5">
+                        <ComboBoxItem Content="Grayscale" />
+                        <ComboBoxItem Content="Terrain" />
+                        <ComboBoxItem Content="Antique" />
+                    </ComboBox>
+
+                    <TextBlock Width="160"
+                               TextAlignment="Center"
+                               Text="Zoom Mode:" />
+
+                    <ComboBox x:Name="ZoomModeBox"
+                              Width="160"
+                              SelectionChanged="ZoomModeBox_SelectionChanged"
+                              Margin="0,0,0,5">
+                        <ComboBoxItem Content="Zoom Out"
+                                      Tag="Out" />
+                        <ComboBoxItem Content="Zoom In"
+                                      Tag="In"
+                                      IsSelected="True" />
+                    </ComboBox>
+
+                    <TextBlock Width="160"
+                               TextAlignment="Center"
+                               Text="Zoom:" />
+                    <Slider x:Name="ZoomSliderSub"
+                            Minimum="0.1"
+                            Maximum="1"
+                            Value="1"
+                            StepFrequency="0.025"
+                            ValueChanged="ZoomSlider_ValueChanged"
+                            Visibility="Collapsed" />
+                    <Slider x:Name="ZoomSliderSup"
+                            Minimum="1"
+                            Maximum="6"
+                            Value="1"
+                            StepFrequency="0.25"
+                            ValueChanged="ZoomSlider_ValueChanged" />
+                    <TextBox x:Name="ZoomInfo"
+                             IsEnabled="False"
+                             Text="Zoom is Default."
+                             TextAlignment="Center" />
+                </StackPanel>
+            </RelativePanel>
         </RelativePanel>
         
     </local:CustomGrid>
