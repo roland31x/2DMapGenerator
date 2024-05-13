@@ -59,6 +59,21 @@ namespace _2DMapGenerator
             HeightBox.IsEnabled = true;
             WidthBox.IsEnabled = true;
             await RenderMap(engine.GeneratedMap);
+
+            float minzoom = 600f / Math.Min(engine.GeneratedMap.Width, engine.GeneratedMap.Height);
+
+            if (minzoom > 1)
+            {
+                ZoomModeBox.SelectedIndex = 1;
+                ZoomSliderSup.Minimum = minzoom;
+                ZoomSliderSup.Value = minzoom;
+            }
+            else
+            {
+                ZoomSliderSub.Minimum = minzoom;
+                ZoomSliderSup.Minimum = 1;
+            }
+            ZoomModeBox.SelectedIndex = ZoomModeBox.SelectedIndex;
         }
 
         private async Task RenderMap(Map map)
@@ -91,7 +106,8 @@ namespace _2DMapGenerator
             }
             MapImg.Source = bitmap;
             MapImg.Height = height;
-            MapImg.Width = width;
+            MapImg.Width = width;        
+
         }
 
         private void OnGenerationStarted(object sender, EventArgs e)
@@ -119,7 +135,46 @@ namespace _2DMapGenerator
             {
                 engine.Seed = seed;
             }
-        }   
+        }
+
+        private void ZoomSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (MapContainer == null)
+                return;
+
+            MapContainer.ZoomToFactor((float)e.NewValue);
+
+            if(ZoomInfo == null)
+                return;
+            ZoomInfo.Text = $"Zoom is {Math.Round(e.NewValue,3)}x";
+        }
+
+        private void ZoomModeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if(ZoomSliderSub == null || ZoomSliderSup == null)
+                return;
+
+            if((string)(ZoomModeBox.SelectedItem as ComboBoxItem).Tag == "Out")
+            {
+                if (ZoomSliderSup.Minimum > 1)
+                {
+                    ZoomModeBox.SelectedIndex = 1;
+                    return;
+                }
+                ZoomSliderSub.Visibility = Visibility.Visible;
+                ZoomSliderSup.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                ZoomSliderSub.Visibility = Visibility.Collapsed;
+                ZoomSliderSup.Visibility = Visibility.Visible;
+            }
+
+            if(ZoomSliderSub.Visibility == Visibility.Visible)
+                ZoomSliderSub.Value = ZoomSliderSub.Value;
+            else
+                ZoomSliderSup.Value = ZoomSliderSup.Value;
+        }
 
         private void OnInfoEvent(object sender, InfoEventArgs e)
         {
@@ -209,6 +264,7 @@ namespace _2DMapGenerator
             hovered = false;
             MainGrid.InputCursor = InputSystemCursor.Create(InputSystemCursorShape.Arrow);
         }
+
 
     }
 
