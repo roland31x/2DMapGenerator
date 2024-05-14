@@ -336,6 +336,7 @@ namespace _2DMapGenerator
                 Flyout flyout = new Flyout();
                 flyout.Content = new TextBlock() { Text = "Please select a valid output path and at least one export option" };
                 flyout.ShowAt(MainGrid);
+                return;
             }
 
             ExportStart.IsEnabled = false;
