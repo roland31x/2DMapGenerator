@@ -10,6 +10,7 @@
 
     <local:CustomGrid x:Name="MainGrid" Background="#323232">
         <RelativePanel>
+           
             <RelativePanel x:Name="LeftPanel"
                            RelativePanel.LeftOf="MiddlePanel"
                            RelativePanel.AlignVerticalCenterWith="MiddlePanel"
@@ -69,7 +70,12 @@
                 <RelativePanel RelativePanel.Above="MapContainer"
                                RelativePanel.LeftOf="ButtonPanel"
                                Margin="0,0,20,20">
-                    
+                    <Button x:Name="ExportButton"
+                            Click="ExportButton_Click"
+                            Content="Export"
+                            FontSize="22"
+                            Background="DarkOrange"
+                            Visibility="Collapsed"/>
                 </RelativePanel>
 
                 <RelativePanel x:Name="ButtonPanel"
@@ -198,6 +204,61 @@
                              TextAlignment="Center" />
                 </StackPanel>
             </RelativePanel>
+
+            <Rectangle x:Name="Overlay"
+                       Fill="#A9FFFFFF"
+                       RelativePanel.AlignHorizontalCenterWithPanel="True"
+                       RelativePanel.AlignVerticalCenterWithPanel="True"
+                       Height="5000"
+                       Width="5000"
+                       Visibility="Collapsed"/>
+            <RelativePanel x:Name="ExportPanel"
+                           Visibility="Collapsed"
+                           Background="#323232"
+                           CornerRadius="15"
+                           RelativePanel.AlignHorizontalCenterWithPanel="True"
+                           RelativePanel.AlignVerticalCenterWithPanel="True">
+                <Button x:Name="ExportClose"
+                        Click="ExportClose_Click"
+                        Content="X"
+                        Background="Red"
+                        Padding="15,5,15,5"
+                        RelativePanel.AlignTopWithPanel="True"
+                        RelativePanel.AlignRightWithPanel="True"/>
+
+                <StackPanel Margin="50,50,50,50">
+                    <TextBlock Text="Export Settings"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Margin="0,0,0,20"/>
+                    <CheckBox x:Name="ExportImageCheck"
+                              Content="Export Image" />
+                    <CheckBox x:Name="ExportObjectCheck"
+                              Content="Export Heightmap" />
+                    <TextBlock Text="Output Path:"
+                               TextAlignment="Center"/>
+                    <TextBox x:Name="OutputPathBox"
+                             IsEnabled="False"
+                             Text="*No Output path selected!"
+                             Margin="0,0,0,10" />
+                    <Button x:Name="PathSelector"
+                            Click="PathSelector_Click"
+                            Content="Select Output Path"
+                            HorizontalAlignment="Center"
+                            Background="DarkOrange"/>
+
+
+                    <Button x:Name="ExportStart"
+                            Content="Export"
+                            FontSize="32"
+                            Background="Crimson"
+                            HorizontalAlignment="Center"
+                            Margin="0,20,0,0"
+                            Click="ExportStart_Click" />
+                </StackPanel>
+                
+            </RelativePanel>
+
         </RelativePanel>
         
     </local:CustomGrid>

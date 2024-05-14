@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace _2DMapGenerator
@@ -23,9 +24,12 @@ namespace _2DMapGenerator
     public class PerlinNoiseGenerator
     {
         int[] permutation;
+        CancellationToken token;
 
-        private PerlinNoiseGenerator(int seed)
+        private PerlinNoiseGenerator(int seed, CancellationToken token)
         {
+            this.token = token;
+
             Random rng = new Random(seed);
             int n = 256;
             List<int> ints = new List<int>();
@@ -140,18 +144,27 @@ namespace _2DMapGenerator
 
             Parallel.For(0, height, y =>
             {
+                if(token.IsCancellationRequested)
+                    return;
+
                 for (int x = 0; x < width; x++)
                 {
+                    if(token.IsCancellationRequested)
+                        return;
+
                     map[x, y] = FractalBrownianMotion(x, y, roughness);
                 }
             });
 
+            if(token.IsCancellationRequested)
+                return Task.FromResult(new Map(width,height));
+
             return Task.FromResult(map);
         }
 
-        public static PerlinNoiseGenerator Create(int seed)
+        public static PerlinNoiseGenerator Create(int seed, CancellationToken token)
         {
-            return new PerlinNoiseGenerator(seed);
+            return new PerlinNoiseGenerator(seed, token);
         }
     }
 }

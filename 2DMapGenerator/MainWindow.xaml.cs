@@ -17,6 +17,8 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Graphics.Imaging;
 using Windows.Media.Control;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 using Windows.UI;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -29,7 +31,8 @@ namespace _2DMapGenerator
     /// </summary>
     public sealed partial class MainWindow : Window
     {
-        GenerationEngine engine = GenerationEngine.Singleton;
+        GenerationEngine engine;
+        ExportEngine exporter;
         bool held = false;
         bool hovered = false;
         double heldx = 0;
@@ -42,13 +45,22 @@ namespace _2DMapGenerator
         public MainWindow()
         {
             this.InitializeComponent();
-            this.engine.InfoEvent += OnInfoEvent;
+            this.engine = GenerationEngine.Singleton;
+            this.exporter = ExportEngine.Singleton;
+            //this.engine.InfoEvent += OnInfoEvent;
             this.engine.GenerationStarted += OnGenerationStarted;
             this.engine.GenerationFinished += OnGenerationFinished;
             (this.ColorBox.Items[0] as ComboBoxItem).Tag = new GrayscalePalette();
             (this.ColorBox.Items[1] as ComboBoxItem).Tag = new HeightMapPalette();
             (this.ColorBox.Items[2] as ComboBoxItem).Tag = new AntiquePalette();
             this.ColorBox.SelectedIndex = 0;
+
+            Binding binding = new Binding();
+            binding.Source = engine;
+            binding.Path = new PropertyPath("Status");
+            binding.Mode = BindingMode.TwoWay;
+            binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            InfoBlock.SetBinding(TextBox.TextProperty, binding);
         }
 
         private async void OnGenerationFinished(object sender, EventArgs e)
@@ -59,8 +71,22 @@ namespace _2DMapGenerator
             HeightBox.IsEnabled = true;
             WidthBox.IsEnabled = true;
             RoughnessBox.IsEnabled = true;
-            await RenderMap(engine.GeneratedMap);
+            SeedBox.Text = engine.Seed.ToString();
 
+            if (engine.ValidGeneration)
+            {
+                ExportButton.Visibility = Visibility.Visible;
+                await RenderMap(engine.GeneratedMap);
+                CalcZoom();
+            }  
+            else
+                ExportButton.Visibility = Visibility.Collapsed;
+
+            
+            
+        }
+        private void CalcZoom()
+        {
             float minzoom = 600f / Math.Min(engine.GeneratedMap.Width, engine.GeneratedMap.Height);
 
             if (minzoom > 1)
@@ -75,7 +101,6 @@ namespace _2DMapGenerator
                 ZoomSliderSub.Minimum = minzoom;
                 ZoomSliderSup.Minimum = 1;
             }
-            
         }
 
         private async Task RenderMap(Map map)
@@ -133,8 +158,15 @@ namespace _2DMapGenerator
 
         private void SeedBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if(SeedBox.Text.Length == 0)
+            {
+                engine.Seed = null;
+                return;
+            }
             if (int.TryParse(SeedBox.Text, out int seed))
             {
+                if (seed == engine.Seed)
+                    return;
                 engine.Seed = seed;
             }
         }
@@ -267,7 +299,100 @@ namespace _2DMapGenerator
             MainGrid.InputCursor = InputSystemCursor.Create(InputSystemCursorShape.Arrow);
         }
 
+        private void ExportButton_Click(object sender, RoutedEventArgs e)
+        {
+            Overlay.Visibility = Visibility.Visible;
+            ExportPanel.Visibility = Visibility.Visible;
+        }
 
+        private async void PathSelector_Click(object sender, RoutedEventArgs e)
+        {
+            FolderPicker picker = new FolderPicker();
+            picker.SuggestedStartLocation = PickerLocationId.Desktop; 
+            picker.FileTypeFilter.Add("*");
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            
+            StorageFolder folder = await picker.PickSingleFolderAsync();
+
+            if(folder == null)
+                return;
+
+            OutputPathBox.Text = folder.Path;
+
+        }
+
+        private async void ExportStart_Click(object sender, RoutedEventArgs e)
+        {
+            bool ready = true;
+            if(ExportImageCheck.IsChecked == false && ExportObjectCheck.IsChecked == false)
+                ready = false;
+            if(!Directory.Exists(OutputPathBox.Text))
+                ready = false;
+
+            if (!ready)
+            {
+                Flyout flyout = new Flyout();
+                flyout.Content = new TextBlock() { Text = "Please select a valid output path and at least one export option" };
+                flyout.ShowAt(MainGrid);
+            }
+
+            ExportStart.IsEnabled = false;
+            ExportClose.IsEnabled = false;
+            ExportImageCheck.IsEnabled = false;
+            ExportObjectCheck.IsEnabled = false;
+            PathSelector.IsEnabled = false;
+            ExportStart.Content = "Exporting...";
+
+            string path = OutputPathBox.Text;
+            path += "\\Seed" + engine.Seed;
+
+            int number = 0;
+            if(Directory.Exists(path))
+            {
+                while (Directory.Exists(path + "_" + number))
+                    number++;
+                path += "_" + number;
+            }
+
+            Directory.CreateDirectory(path);
+            try
+            {
+                bool expImg = ExportImageCheck.IsChecked == true ? true : false;
+                bool expObj = ExportObjectCheck.IsChecked == true ? true : false;
+                Map toExp = engine.GeneratedMap;
+                ColorPalette colors = this.selected;
+
+                await Task.Run(() => exporter.Export(expImg, expObj, path, toExp, colors));
+
+                Flyout success = new Flyout();
+                success.Content = new TextBlock() { Text = "Exported successfully to: " + path };
+                success.ShowAt(MainGrid);
+            }
+            catch (Exception ex)
+            {
+                Flyout flyout = new Flyout();
+                flyout.Content = new TextBlock() { Text = "Error exporting: " + ex.Message };
+                flyout.ShowAt(MainGrid);
+            }   
+
+            ExportStart.IsEnabled = true;
+            ExportClose.IsEnabled = true;
+            ExportImageCheck.IsEnabled = true;
+            ExportObjectCheck.IsEnabled = true;
+            PathSelector.IsEnabled = true;
+            ExportStart.Content = "Export";
+            Overlay.Visibility = Visibility.Collapsed;
+            ExportPanel.Visibility = Visibility.Collapsed;   
+
+        }
+
+        private void ExportClose_Click(object sender, RoutedEventArgs e)
+        {
+            Overlay.Visibility = Visibility.Collapsed;
+            ExportPanel.Visibility = Visibility.Collapsed;
+        }
     }
 
     public class CustomGrid : Grid

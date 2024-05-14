@@ -1,6 +1,10 @@
-﻿using System;
+﻿using Microsoft.UI.Xaml;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +12,7 @@ using Windows.Foundation.Metadata;
 
 namespace _2DMapGenerator
 {
-    public class GenerationEngine
+    public class GenerationEngine : INotifyPropertyChanged
     {
         private static GenerationEngine _singleton;
         public static GenerationEngine Singleton
@@ -47,22 +51,31 @@ namespace _2DMapGenerator
             }
         }
 
-        private bool _forceStop = false;
+        private string _status = "Idle...";
 
-        private double _status = 0;
-        private int _percent = 0;
-        private void SetStatus(double newstatus)
+        public string Status
         {
-            _status = newstatus;
-            if (_status - _percent > 1)
+            get
             {
-                _percent = (int)_status;
-                InfoEvent?.Invoke(this, new InfoEventArgs("Generation status: " + _percent + "%"));
+                return _status;
             }
-           
+            private set
+            {
+                _status = value;
+                OnPropertyChanged();
+            }
         }
 
         private Map _map;
+        private bool _validgeneration = false;
+        public bool ValidGeneration
+        {
+            get
+            {
+                return _validgeneration;
+            }
+        }
+
         public Map GeneratedMap
         {
             get
@@ -75,8 +88,8 @@ namespace _2DMapGenerator
             }
         }
 
-        public event InfoEventHandler InfoEvent;
-        public delegate void InfoEventHandler(object sender, InfoEventArgs e);
+        //public event InfoEventHandler InfoEvent;
+        //public delegate void InfoEventHandler(object sender, InfoEventArgs e);
 
         public event GenerationStartEventHandler GenerationStarted;
         public delegate void GenerationStartEventHandler(object sender, EventArgs e);
@@ -84,12 +97,17 @@ namespace _2DMapGenerator
         public event GenerationFinishedEventHandler GenerationFinished;
         public delegate void GenerationFinishedEventHandler(object sender, EventArgs e);
 
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
         #endregion
 
-    #region Params
+        #region Params
 
-        private int _seed;
-        public int Seed
+        private int? _seed;
+        public int? Seed
         {
             get
             {
@@ -99,12 +117,24 @@ namespace _2DMapGenerator
             {
                 if (!_working)
                 {
+                    if(value == null)
+                    {
+                        _seed = null;
+                        Status = "Seed reset!";
+                        return;
+                    }
+
+                    if(value < 0)
+                    {
+                        Status = "Invalid Seed!";
+                        return;
+                    }
                     _seed = value;
-                    InfoEvent?.Invoke(this, new InfoEventArgs("Seed changed to " + _seed));
+                    Status = "Seed changed to " + _seed;
                 }
                 else
                 {
-                    InfoEvent?.Invoke(this, new InfoEventArgs("Cannot change seed while working..."));
+                    Status = "Cannot change seed while working...";
                 }
             }
         }
@@ -122,16 +152,16 @@ namespace _2DMapGenerator
                 {
                     if(value < 10)
                     {
-                        InfoEvent?.Invoke(this, new InfoEventArgs("Height cannot be less than 10!"));
+                        Status = "Height cannot be less than 10!";
                         return;
                     }
 
                     _height = value;
-                    InfoEvent?.Invoke(this, new InfoEventArgs("Height changed to " + _height));
+                    Status = "Height changed to " + _height;
                 }
                 else
                 {
-                    InfoEvent?.Invoke(this, new InfoEventArgs("Cannot change height while working..."));
+                    Status = "Cannot change height while working...";
                 }
             }
         }
@@ -148,15 +178,15 @@ namespace _2DMapGenerator
                 {                
                     if (value < 10)
                     {
-                        InfoEvent?.Invoke(this, new InfoEventArgs("Width cannot be less than 10!"));
+                        Status = "Width cannot be less than 10!";
                         return;
                     }
                     _width = value;
-                    InfoEvent?.Invoke(this, new InfoEventArgs("Width changed to " + _width));
+                    Status = "Width changed to " + _width;
                 }
                 else
                 {
-                    InfoEvent?.Invoke(this, new InfoEventArgs("Cannot change width while working..."));
+                    Status = "Cannot change width while working...";
                 }
             }
         }
@@ -175,20 +205,20 @@ namespace _2DMapGenerator
 
                     if(value < 1)
                     {
-                        InfoEvent?.Invoke(this, new InfoEventArgs("Roughness cannot be less than 1!"));
+                        Status = "Roughness cannot be less than 1!";
                         return;
                     }
                     if(value > 10)
                     {
-                        InfoEvent?.Invoke(this, new InfoEventArgs("Roughness cannot be more than 10!"));
+                        Status = "Roughness cannot be more than 10!";
                         return;
                     }
                     _rough = value;
-                    InfoEvent?.Invoke(this, new InfoEventArgs("Roughness changed to " + _rough));
+                    Status = "Roughness changed to " + _rough;
                 }
                 else
                 {
-                    InfoEvent?.Invoke(this, new InfoEventArgs("Cannot change smoothness while working..."));
+                    Status = "Cannot change smoothness while working...";
                 }
             }
         }
@@ -197,26 +227,41 @@ namespace _2DMapGenerator
 
         private GenerationEngine()
         {
+            Seed = null;
             Height = 600;
             Width = 600;
-            Seed = 0;
             Roughness = 6;
         }
+
+        private CancellationTokenSource cts = new CancellationTokenSource();
 
         public async void StartGenerate()
         {
             if (!_working)
             {
                 Working = true;
-                InfoEvent?.Invoke(this, new InfoEventArgs("Generation started!"));
-                Map generated = await Task.Run(() => GenerateMap());
+                cts = new CancellationTokenSource();
+                CancellationToken token = cts.Token;            
+                Status = "Generation started!";
+                Map generated = await Task.Run(() => GenerateMap(token));
                 GeneratedMap = generated;
-                InfoEvent?.Invoke(this, new InfoEventArgs("Generation finished!"));
+                
+                if (token.IsCancellationRequested)
+                {
+                    Status = "Generation cancelled!";
+                    _validgeneration = false;
+                    _map = null;
+                    Working = false;
+                    return;
+                }
+
+                _validgeneration = true;
+                Status = "Generation finished!";
                 Working = false;
             }
             else
             {
-                InfoEvent?.Invoke(this, new InfoEventArgs("Engine is already generating! Cancel the generation first!"));
+                Status = "Engine is already generating! Cancel the generation first!";
             }
         }
 
@@ -224,25 +269,25 @@ namespace _2DMapGenerator
         {
             if (_working)
             {
-                _forceStop = true;
+                cts.Cancel();
             }
             else
             {
-                InfoEvent?.Invoke(this, new InfoEventArgs("Engine is not working!"));
+                Status = "Engine is not working!";
             }
         }
 
-        
-        private async Task<Map> GenerateMap()
+
+        private async Task<Map> GenerateMap(CancellationToken token)
         {
             int width = Width;
             int height = Height;
             int roughness = Roughness;
 
-            //if(Seed == 0)
-            //    Seed = new Random().Next();
+            if (Seed == null)
+                _seed = new Random().Next();
 
-            PerlinNoiseGenerator pg = PerlinNoiseGenerator.Create(Seed);
+            PerlinNoiseGenerator pg = PerlinNoiseGenerator.Create((int)Seed, token);
             Map perlinMap = await pg.ComputePerlinNoiseMapAsync(width, height, roughness);
 
             return perlinMap;
