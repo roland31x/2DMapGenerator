@@ -10,7 +10,7 @@ namespace _2DMapGenerator
     {
         protected float Scale(float number)
         {
-            return (number + 1) / 2;
+            return number * 0.5f + 0.5f;
         }
         public abstract Color GetColor(float number);
     }
@@ -24,46 +24,64 @@ namespace _2DMapGenerator
             return Color.FromArgb(255, val, val, val);
         }
     }
-    
+
     public class HeightMapPalette : ColorPalette
     {
         public override Color GetColor(float number)
         {
-            number = Scale(number);
+            //highest mountains
+            if (number >= 1.5)
+                return Color.FromArgb(255, 255, 223, 0);
+            else
+                //deep ocean
+                if (number <= -1)
+                    return Color.FromArgb(255, 0, 0, 55);
 
-            if (number > 0.7)
+            if (number <= 0.3f)
             {
-                // Interpolating between yellow and dark brown
-                byte r = 255;
-                byte g = (byte)(255 * (number / 0.3));
-                byte b = 0;
-                return Color.FromArgb(255, r, g, b);
+                // Water colors
+                float t = (number + 1) / 1.3f;
+                return InterpolateColor(Color.FromArgb(255, 0, 0, 64), Color.FromArgb(255, 0, 191, 255), t);
             }
-            else if (number > 0.5)
+            else if (number <= 0.7f)
             {
-                // Darkening the green towards yellow
-                byte r = (byte)(255 * ((0.7 - number) / 0.4));
-                byte g = (byte)(100 + 155 * ((0.7 - number) / 0.4)); // Dark green
-                byte b = 0;
-                return Color.FromArgb(255, r, g, b);
+                // Land colors low
+                float t = (number - 0.3f) / 0.4f;
+                return InterpolateColor(Color.FromArgb(255, 124, 252, 0), Color.FromArgb(255, 34, 139, 34), t);
+            }
+            else if (number <= 1f)
+            {
+                // Mountain colors high
+                float t = (number - 0.7f) / 0.3f;
+                return InterpolateColor(Color.FromArgb(255, 34, 139, 34), Color.FromArgb(255, 255, 223, 0), t);
             }
             else
             {
-                // Interpolating between pale blue ocean color
-                byte r = 173;
-                byte g = (byte)(255 - 127.5 * ((number - 0.7) / 0.3));
-                byte b = 255;
-                return Color.FromArgb(255, r, g, b);
+                // Mountain colors high
+                float t = (number - 0.5f) / 0.2f;
+                return InterpolateColor(Color.FromArgb(255, 255, 223, 0), Color.FromArgb(255, 153, 101, 21), t);
             }
         }
+
+        private Color InterpolateColor(Color startColor, Color endColor, float t)
+        {
+            int r = (int)(startColor.R + (endColor.R - startColor.R) * t);
+            int g = (int)(startColor.G + (endColor.G - startColor.G) * t);
+            int b = (int)(startColor.B + (endColor.B - startColor.B) * t);
+            int a = (int)(startColor.A + (endColor.A - startColor.A) * t);
+
+            return Color.FromArgb((byte)a, (byte)r, (byte)g, (byte)b);
+        }
+
     }
+
 
     public class AntiquePalette : ColorPalette
     {
         public override Color GetColor(float number)
         {
             number = Scale(number);
-            if (number < 0.6)
+            if (number < 0.65)
             {
                 return Color.FromArgb(255, 0, 0, 255);
             }
