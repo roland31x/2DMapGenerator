@@ -166,8 +166,9 @@
                               SelectionChanged="ColorBox_SelectionChanged"
                               Margin="0,0,0,5">
                         <ComboBoxItem Content="Grayscale" />
-                        <ComboBoxItem Content="Terrain" />
                         <ComboBoxItem Content="Antique" />
+                        <ComboBoxItem Content="Terrain" />
+                        <ComboBoxItem Content="Temperature" />
                     </ComboBox>
 
                     <TextBlock Width="160"
