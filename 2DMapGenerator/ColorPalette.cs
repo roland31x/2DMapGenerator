@@ -73,7 +73,7 @@ namespace _2DMapGenerator
     }
 
 
-    public class AntiquePalette : ColorPalette
+    public class SimpleTerrainPalette : ColorPalette
     {
         public override Color GetColor(float number)
         {

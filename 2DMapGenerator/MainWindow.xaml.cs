@@ -51,7 +51,7 @@ namespace _2DMapGenerator
             this.engine.GenerationStarted += OnGenerationStarted;
             this.engine.GenerationFinished += OnGenerationFinished;
             (this.ColorBox.Items[0] as ComboBoxItem).Tag = new GrayscalePalette();
-            (this.ColorBox.Items[1] as ComboBoxItem).Tag = new AntiquePalette();
+            (this.ColorBox.Items[1] as ComboBoxItem).Tag = new SimpleTerrainPalette();
             (this.ColorBox.Items[2] as ComboBoxItem).Tag = new HeightMapPalette();
             (this.ColorBox.Items[3] as ComboBoxItem).Tag = new TemperaturePalette();
             this.ColorBox.SelectedIndex = 0;

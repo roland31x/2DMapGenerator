@@ -112,7 +112,7 @@
                 
 
                 <ScrollViewer x:Name="MapContainer"
-                              BorderBrush="DarkGoldenrod"
+                              BorderBrush="Gainsboro"
                               BorderThickness="2"
                               Background="Gainsboro"
                               RelativePanel.AlignHorizontalCenterWithPanel="True"
@@ -166,7 +166,7 @@
                               SelectionChanged="ColorBox_SelectionChanged"
                               Margin="0,0,0,5">
                         <ComboBoxItem Content="Grayscale" />
-                        <ComboBoxItem Content="Antique" />
+                        <ComboBoxItem Content="Simple Terrain" />
                         <ComboBoxItem Content="Terrain" />
                         <ComboBoxItem Content="Temperature" />
                     </ComboBox>
@@ -249,7 +249,7 @@
                             Click="PathSelector_Click"
                             Content="Select Output Path"
                             HorizontalAlignment="Center"
-                            FontSize="20"
+                            FontSize="18"
                             Foreground="Black"
                             Background="PaleGreen"/>
 
