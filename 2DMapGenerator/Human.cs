@@ -13,11 +13,16 @@ public class Human
     public float Lifespan { get; private set; }
     public float EnergyEfficiency { get; private set; }
     public Gender HumanGender { get; private set; }
-    private float energy;
-    private float age;
+    public float BirthCooldown { get; private set; }
+    public List<Human> Parents { get; private set; } // Track parents
+    
+    public float Age { get; private set; } // Age of the human
+    public float MinReproductiveAge { get; private set; }
+    public float MaxReproductiveAge { get; private set; }
+    public float ReproductionEnergyThreshold { get; private set; }
 
+    private float energy;
     private bool canReproduce;
-    private int birthCooldown; // Cooldown period for females
     private int currentCooldown; // Tracks current cooldown
 
     private Random random;
@@ -31,10 +36,14 @@ public class Human
         Lifespan = Math.Min(lifespan, random.Next(30, 100));
         EnergyEfficiency = energyEfficiency;
         energy = 100.0f; // Starting energy
-        age = 0.0f;
+        Age = 0.0f;
+        Parents = new List<Human>();
         canReproduce = HumanGender == Gender.Male || true; // Males can always reproduce
-        birthCooldown = HumanGender == Gender.Female ? 10 : 0; // Females have a cooldown period (e.g., 10 ticks)
+        BirthCooldown = HumanGender == Gender.Female ? 10 : 0; // Females have a cooldown period (e.g., 10 ticks)
         currentCooldown = 0;
+        MinReproductiveAge = 20.0f; // Example: Humans can reproduce starting from age 20
+        MaxReproductiveAge = 50.0f; // Example: Humans stop reproducing after age 50
+        ReproductionEnergyThreshold = 30.0f; // Example: Humans need at least 30 energy to reproduce
         GenerateNewDirection();
     }
 
@@ -91,12 +100,12 @@ public class Human
         energy -= 1.0f / EnergyEfficiency;
 
         // Increase age
-        age++;
+        Age++;
     }
 
     public bool IsAlive()
     {
-        return energy > 0 && age < Lifespan;
+        return energy > 0 && Age < Lifespan;
     }
 
     public void Eat()
@@ -106,40 +115,27 @@ public class Human
 
     public Human Reproduce(Human partner)
     {
-        // Ensure reproduction only happens between male and female
-        if (HumanGender == partner.HumanGender || !canReproduce || !partner.canReproduce)
-            return null;
-
         float childSpeed = MutateTrait((Speed + partner.Speed) / 2);
         float childLifespan = MutateTrait((Lifespan + partner.Lifespan) / 2);
         float childEnergyEfficiency = MutateTrait((EnergyEfficiency + partner.EnergyEfficiency) / 2);
-        Gender childGender = (random.NextDouble() < 0.5) ? Gender.Male : Gender.Female; // Random gender
 
-        // Add a small random offset to the child's position
         Vector2 childPosition = new Vector2(
             Position.x + (float)(random.NextDouble() * 2 - 1), // Random offset [-1, 1]
-            Position.y + (float)(random.NextDouble() * 2 - 1)  // Random offset [-1, 1]
+            Position.y + (float)(random.NextDouble() * 2 - 1)
         );
 
+        Gender childGender = (random.NextDouble() < 0.5) ? Gender.Male : Gender.Female;
+
         Human child = new Human(childPosition, childGender, childSpeed, childLifespan, childEnergyEfficiency);
+        child.Parents.Add(this);
+        child.Parents.Add(partner);
 
-        // Female enters cooldown period
-        if (HumanGender == Gender.Female)
-        {
-            canReproduce = false;
-            currentCooldown = birthCooldown;
-        }
+        GenerateNewDirection();
+        partner.GenerateNewDirection();
+        child.GenerateNewDirection();
 
-        if (partner.HumanGender == Gender.Female)
-        {
-            partner.canReproduce = false;
-            partner.currentCooldown = partner.birthCooldown;
-        }
-
-        // Make both parents and the child move in new random directions
-        GenerateNewDirection(); // This human
-        partner.GenerateNewDirection(); // Partner
-        child.GenerateNewDirection(); // Child
+        BirthCooldown = 20.0f; // Add a cooldown period for the mother
+        partner.BirthCooldown = 20.0f;
 
         return child;
     }
@@ -191,8 +187,7 @@ public class Human
 
         foreach (var human in humans)
         {
-            if (human == null) continue; // Skip null entries
-            if (human == this || human.HumanGender == HumanGender) continue; // Skip self and same gender
+            if (!CanReproduce(human)) continue;
 
             double distance = GetDistance(Position, human.Position);
             if (distance < nearestDistance) // Check for nearest human
@@ -203,6 +198,19 @@ public class Human
         }
 
         return nearestHuman;
+    }
+
+    public bool CanReproduce(Human partner)
+    {
+        return this != null 
+            && partner != null
+            && partner.HumanGender != this.HumanGender
+            && !this.Parents.Contains(partner)
+            && !partner.Parents.Contains(this)
+            && Age >= MinReproductiveAge && Age <= MaxReproductiveAge
+            && energy >= ReproductionEnergyThreshold
+            && partner.Age >= partner.MinReproductiveAge && partner.Age <= partner.MaxReproductiveAge
+            && partner.energy >= partner.ReproductionEnergyThreshold;
     }
 
     private double GetDistance(Vector2 a, Vector2 b)

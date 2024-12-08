@@ -451,9 +451,9 @@ namespace _2DMapGenerator
                 {
                     foreach (var otherHuman in humans)
                     {
-                        if (otherHuman == null) continue;
-                        if (human != otherHuman &&
-                            (int)human.Position.x == (int)otherHuman.Position.x &&
+                        if (!human.CanReproduce(otherHuman)) continue;
+
+                        if ((int)human.Position.x == (int)otherHuman.Position.x &&
                             (int)human.Position.y == (int)otherHuman.Position.y)
                         {
                             // Reproduce only on land
@@ -462,10 +462,12 @@ namespace _2DMapGenerator
                             if (engine.GeneratedMap[x, y] >= 0.3f && engine.GeneratedMap[x, y] <= 0.7f)
                             {
                                 newHumans.Add(human.Reproduce(otherHuman));
+                                break;
                             }
                         }
                     }
                 }
+
             }
 
             // Remove dead humans
