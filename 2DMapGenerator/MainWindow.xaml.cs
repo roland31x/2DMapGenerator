@@ -40,6 +40,7 @@ namespace _2DMapGenerator
         double horzoff = 0;
         double vertoff = 0;
 
+        private List<Food> foodItems = new List<Food>();
         private List<Human> humans = new List<Human>();
         private DispatcherTimer humanUpdateTimer;
 
@@ -411,23 +412,70 @@ namespace _2DMapGenerator
             if (engine.GeneratedMap == null || humans.Count == 0)
                 return;
 
+            List<Human> newHumans = new List<Human>();
+            List<Human> deadHumans = new List<Human>();
+            List<Food> consumedFood = new List<Food>();
+
             foreach (var human in humans)
             {
                 human.Move(engine.GeneratedMap);
 
-                // Keep humans within map bounds
-                human.Position = new Vector2(
-                    Math.Max(0, Math.Min(engine.GeneratedMap.Width - 1, human.Position.x)),
-                    Math.Max(0, Math.Min(engine.GeneratedMap.Height - 1, human.Position.y))
-                );
+                // Check if human eats food
+                foreach (var food in foodItems)
+                {
+                    if ((int)human.Position.x == (int)food.Position.x &&
+                        (int)human.Position.y == (int)food.Position.y)
+                    {
+                        human.Eat();
+                        consumedFood.Add(food);
+                        break;
+                    }
+                }
+
+                // Check if human is alive
+                if (!human.IsAlive())
+                {
+                    deadHumans.Add(human);
+                    continue;
+                }
+
+                // Check for reproduction
+                foreach (var otherHuman in humans)
+                {
+                    if (human != otherHuman &&
+                        (int)human.Position.x == (int)otherHuman.Position.x &&
+                        (int)human.Position.y == (int)otherHuman.Position.y)
+                    {
+                        // Reproduce only on land
+                        int x = (int)Math.Clamp(human.Position.x, 0, engine.GeneratedMap.Width - 1);
+                        int y = (int)Math.Clamp(human.Position.y, 0, engine.GeneratedMap.Height - 1);
+                        if (engine.GeneratedMap[x, y] >= 0.3f && engine.GeneratedMap[x, y] <= 0.7f)
+                        {
+                            newHumans.Add(new Human(human.Position));
+                        }
+                    }
+                }
             }
 
-            RenderHumans();
+            // Remove dead humans
+            foreach (var dead in deadHumans)
+            {
+                humans.Remove(dead);
+            }
+
+            // Remove consumed food
+            foreach (var food in consumedFood)
+            {
+                foodItems.Remove(food);
+            }
+
+            // Add new humans
+            humans.AddRange(newHumans);
+
+            RenderHumansAndFood();
         }
 
-
-
-        private async void RenderHumans()
+        private async void RenderHumansAndFood()
         {
             if (engine.GeneratedMap == null)
                 return;
@@ -436,7 +484,7 @@ namespace _2DMapGenerator
             int height = engine.GeneratedMap.Height;
             byte[] pixelData = new byte[width * height * 4];
 
-            // Render the gradient map
+            // Render the terrain first
             Parallel.For(0, height, y =>
             {
                 for (int x = 0; x < width; x++)
@@ -451,25 +499,39 @@ namespace _2DMapGenerator
                 }
             });
 
-            // Overlay humans as red dots
+            // Overlay food (green dots)
+            foreach (var food in foodItems)
+            {
+                int x = (int)food.Position.x;
+                int y = (int)food.Position.y;
+
+                if (x >= 0 && x < width && y >= 0 && y < height)
+                {
+                    int pixelIndex = (y * width + x) * 4;
+                    pixelData[pixelIndex] = 0;   // Blue
+                    pixelData[pixelIndex + 1] = 255; // Green
+                    pixelData[pixelIndex + 2] = 0;   // Red
+                    pixelData[pixelIndex + 3] = 255; // Alpha
+                }
+            }
+
+            // Overlay humans (red dots)
             foreach (var human in humans)
             {
                 int x = (int)human.Position.x;
                 int y = (int)human.Position.y;
 
-                // Ensure humans are within bounds
                 if (x >= 0 && x < width && y >= 0 && y < height)
                 {
                     int pixelIndex = (y * width + x) * 4;
-
-                    pixelData[pixelIndex] = 0;     // Blue
-                    pixelData[pixelIndex + 1] = 0; // Green
-                    pixelData[pixelIndex + 2] = 255; // Red
+                    pixelData[pixelIndex] = 255;     // Blue
+                    pixelData[pixelIndex + 1] = 0;   // Green
+                    pixelData[pixelIndex + 2] = 0;   // Red
                     pixelData[pixelIndex + 3] = 255; // Alpha
                 }
             }
 
-            // Create a new bitmap and set the pixel data
+            // Create and display the combined image
             WriteableBitmap bitmap = new WriteableBitmap(width, height);
             using (Stream stream = bitmap.PixelBuffer.AsStream())
             {
@@ -488,15 +550,15 @@ namespace _2DMapGenerator
                 return;
             }
 
-            // Initialize humans
+            // Generate humans and food
             humans.Clear();
+            GenerateFood(engine.GeneratedMap, 50); // Add 50 food items
+
             Random random = new Random();
             int humanCount = 50; // Number of humans to simulate
-
             for (int i = 0; i < humanCount; i++)
             {
-                humans.Add(new Human
-                (
+                humans.Add(new Human(
                     new Vector2(
                         random.Next(0, engine.GeneratedMap.Width),
                         random.Next(0, engine.GeneratedMap.Height)
@@ -504,9 +566,32 @@ namespace _2DMapGenerator
                 ));
             }
 
+            // Start the human simulation timer
             humanUpdateTimer.Start();
             InfoBlock.Text = "Human simulation started.";
+            RenderHumansAndFood(); // Initial render
         }
+
+
+        private void GenerateFood(Map map, int count)
+        {
+            Random random = new Random();
+            foodItems.Clear();
+
+            for (int i = 0; i < count; i++)
+            {
+                int x, y;
+                do
+                {
+                    x = random.Next(0, map.Width);
+                    y = random.Next(0, map.Height);
+                }
+                while (map[x, y] < 0.3f || map[x, y] > 0.7f); // Only place food on plains
+
+                foodItems.Add(new Food(new Vector2(x, y)));
+            }
+        }
+
     }
 
     public class CustomGrid : Grid
