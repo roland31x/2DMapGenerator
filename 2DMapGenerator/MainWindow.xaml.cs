@@ -413,7 +413,7 @@ namespace _2DMapGenerator
 
             foreach (var human in humans)
             {
-                human.Move();
+                human.Move(engine.GeneratedMap);
 
                 // Keep humans within map bounds
                 human.Position = new Vector2(
@@ -424,6 +424,7 @@ namespace _2DMapGenerator
 
             RenderHumans();
         }
+
 
 
         private async void RenderHumans()

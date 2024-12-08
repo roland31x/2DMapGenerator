@@ -26,12 +26,36 @@ namespace _2DMapGenerator
             GenerateNewDirection();
         }
 
-        public void Move()
+        public void Move(Map map)
         {
-            Position = new Vector2(Position.x + Direction.x * Speed, Position.y + Direction.y * Speed);
+            // Get terrain type at current position
+            int x = (int)Math.Clamp(Position.x, 0, map.Width - 1);
+            int y = (int)Math.Clamp(Position.y, 0, map.Height - 1);
+            float terrainValue = map[x, y];
 
-            // If out of bounds, generate a new direction
-            if (random.NextDouble() < 0.1) // Randomly change direction
+            // Adjust speed based on terrain type
+            float terrainSpeedModifier = 1.0f; // Default for plains
+            if (terrainValue < 0.3f) // Water
+            {
+                terrainSpeedModifier = 0.5f; // Move slower
+            }
+            else if (terrainValue > 0.7f) // Mountains
+            {
+                terrainSpeedModifier = 0.7f; // Move slower
+            }
+            else if (terrainValue >= 0.3f && terrainValue <= 0.7f) // Plains
+            {
+                terrainSpeedModifier = 1.2f; // Move faster
+            }
+
+            // Update position with adjusted speed
+            Position = new Vector2(
+                Position.x + Direction.x * Speed * terrainSpeedModifier,
+                Position.y + Direction.y * Speed * terrainSpeedModifier
+            );
+
+            // Occasionally change direction
+            if (random.NextDouble() < 0.1)
             {
                 GenerateNewDirection();
             }
