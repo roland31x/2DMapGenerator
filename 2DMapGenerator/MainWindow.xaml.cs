@@ -4,22 +4,17 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Graphics.Imaging;
-using Windows.Media.Control;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI;
+
 using static _2DMapGenerator.Human;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -34,6 +29,7 @@ namespace _2DMapGenerator
     {
         GenerationEngine engine;
         ExportEngine exporter;
+        Random random = new Random();
         bool held = false;
         bool hovered = false;
         double heldx = 0;
@@ -43,6 +39,7 @@ namespace _2DMapGenerator
 
         private List<Food> foodItems = new List<Food>();
         private List<Human> humans = new List<Human>();
+        private List<Tribe> tribes = new List<Tribe>();
         private DispatcherTimer humanUpdateTimer;
 
         ColorPalette selected = new GrayscalePalette();
@@ -537,6 +534,31 @@ namespace _2DMapGenerator
                 }
             }
 
+            foreach (var tribe in tribes)
+            {
+                if (tribe.Allies?.Count < 2) // Limit alliances per tribe
+                {
+                    Tribe potentialAlly = tribes[random.Next(tribes.Count)];
+                    if (potentialAlly != tribe && !tribe.Allies.Contains(potentialAlly))
+                    {
+                        tribe.FormAlliance(potentialAlly);
+                    }
+                }
+                if (tribe.Allies == null) continue;
+
+                foreach (var otherTribe in tribes)
+                {
+                    if (tribe != otherTribe && !tribe.Allies.Contains(otherTribe))
+                    {
+                        // Example: Trigger fight if two tribes are close
+                        Human tribeLeader = tribe.Leader;
+                        Human otherTribeLeader = otherTribe.Leader;
+
+                        tribe.Fight(otherTribe, ref tribes);
+                    }
+                }
+            }
+
             // Overlay humans (males blue, females pink)
             foreach (var human in humans)
             {
@@ -578,6 +600,35 @@ namespace _2DMapGenerator
             MapImg.Source = bitmap;
         }
 
+        private void CreateTribes(int numberOfTribes)
+        {
+            Random random = new Random();
+
+            for (int i = 0; i < numberOfTribes; i++)
+            {
+                // Select a random leader from existing humans
+                Human leader = humans[random.Next(humans.Count)];
+
+                // Create a new tribe and assign the leader
+                Tribe tribe = new Tribe($"Tribe_{i + 1}", leader);
+                tribes.Add(tribe);
+
+                // Assign leader's tribe
+                leader.Tribe = tribe;
+            }
+
+            // Distribute humans to tribes
+            foreach (var human in humans)
+            {
+                if (human.Tribe == null) // Assign only unassigned humans
+                {
+                    Tribe randomTribe = tribes[random.Next(tribes.Count)];
+                    randomTribe.AddMember(human);
+                    human.Tribe = randomTribe;
+                }
+            }
+        }
+
         private void HumanSimulationButton_Click(object sender, RoutedEventArgs e)
         {
             if (engine.GeneratedMap == null)
@@ -614,8 +665,9 @@ namespace _2DMapGenerator
 
                 // Create a new human at the valid land position
                 Gender randomGender = (random.NextDouble() < 0.5) ? Gender.Male : Gender.Female;
-                humans.Add(new Human(new Vector2(x, y), randomGender));
+                humans.Add(new Human(new Vector2(x, y), randomGender, tribes));
             }
+            CreateTribes(2);
 
             // Start the human simulation timer
             humanUpdateTimer.Start();

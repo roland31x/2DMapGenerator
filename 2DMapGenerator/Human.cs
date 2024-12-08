@@ -15,19 +15,20 @@ public class Human
     public Gender HumanGender { get; private set; }
     public float BirthCooldown { get; private set; }
     public List<Human> Parents { get; private set; } // Track parents
-    
+    public Tribe Tribe { get; set; } // Each human belongs to a tribe
+
     public float Age { get; private set; } // Age of the human
     public float MinReproductiveAge { get; private set; }
     public float MaxReproductiveAge { get; private set; }
     public float ReproductionEnergyThreshold { get; private set; }
+    public float Energy { get; private set; }
+    public float Strength { get; private set; }
 
-    private float energy;
     private bool canReproduce;
     private int currentCooldown; // Tracks current cooldown
-
     private Random random;
 
-    public Human(Vector2 startPosition, Gender gender, float speed = 1.0f, float lifespan = 100.0f, float energyEfficiency = 1.0f)
+    public Human(Vector2 startPosition, Gender gender, List<Tribe> tribes, float speed = 1.0f, float lifespan = 100.0f, float energyEfficiency = 1.0f, Tribe tribe = null)
     {
         random = new Random();
         Position = startPosition;
@@ -35,7 +36,7 @@ public class Human
         Speed = speed;
         Lifespan = Math.Min(lifespan, random.Next(30, 100));
         EnergyEfficiency = energyEfficiency;
-        energy = 100.0f; // Starting energy
+        Energy = 100.0f; // Starting energy
         Age = 0.0f;
         Parents = new List<Human>();
         canReproduce = HumanGender == Gender.Male || true; // Males can always reproduce
@@ -44,6 +45,7 @@ public class Human
         MinReproductiveAge = 20.0f; // Example: Humans can reproduce starting from age 20
         MaxReproductiveAge = 50.0f; // Example: Humans stop reproducing after age 50
         ReproductionEnergyThreshold = 30.0f; // Example: Humans need at least 30 energy to reproduce
+        Tribe = tribe;
         GenerateNewDirection();
     }
 
@@ -97,7 +99,7 @@ public class Human
         }
 
         // Consume energy based on movement
-        energy -= 1.0f / EnergyEfficiency;
+        Energy -= 1.0f / EnergyEfficiency;
 
         // Increase age
         Age++;
@@ -105,12 +107,12 @@ public class Human
 
     public bool IsAlive()
     {
-        return energy > 0 && Age < Lifespan;
+        return Energy > 0 && Age < Lifespan;
     }
 
     public void Eat()
     {
-        energy += 50; // Replenish energy when eating
+        Energy += 50; // Replenish energy when eating
     }
 
     public Human Reproduce(Human partner)
@@ -126,7 +128,7 @@ public class Human
 
         Gender childGender = (random.NextDouble() < 0.5) ? Gender.Male : Gender.Female;
 
-        Human child = new Human(childPosition, childGender, childSpeed, childLifespan, childEnergyEfficiency);
+        Human child = new Human(childPosition, childGender, null, childSpeed, childLifespan, childEnergyEfficiency);
         child.Parents.Add(this);
         child.Parents.Add(partner);
 
@@ -208,9 +210,9 @@ public class Human
             && !this.Parents.Contains(partner)
             && !partner.Parents.Contains(this)
             && Age >= MinReproductiveAge && Age <= MaxReproductiveAge
-            && energy >= ReproductionEnergyThreshold
+            && Energy >= ReproductionEnergyThreshold
             && partner.Age >= partner.MinReproductiveAge && partner.Age <= partner.MaxReproductiveAge
-            && partner.energy >= partner.ReproductionEnergyThreshold;
+            && partner.Energy >= partner.ReproductionEnergyThreshold;
     }
 
     private double GetDistance(Vector2 a, Vector2 b)
