@@ -5,30 +5,49 @@ namespace _2DMapGenerator;
 
 public class Human
 {
+    public enum Gender { Male, Female }
+
     public Vector2 Position { get; set; }
     public Vector2 Direction { get; private set; }
     public float Speed { get; private set; }
     public float Lifespan { get; private set; }
     public float EnergyEfficiency { get; private set; }
+    public Gender HumanGender { get; private set; }
     private float energy;
     private float age;
 
+    private bool canReproduce;
+    private int birthCooldown; // Cooldown period for females
+    private int currentCooldown; // Tracks current cooldown
+
     private Random random;
 
-    public Human(Vector2 startPosition, float speed = 1.0f, float lifespan = 100.0f, float energyEfficiency = 1.0f)
+    public Human(Vector2 startPosition, Gender gender, float speed = 1.0f, float lifespan = 100.0f, float energyEfficiency = 1.0f)
     {
+        random = new Random();
         Position = startPosition;
+        HumanGender = gender;
         Speed = speed;
-        Lifespan = lifespan;
+        Lifespan = Math.Min(lifespan, random.Next(30, 100));
         EnergyEfficiency = energyEfficiency;
         energy = 100.0f; // Starting energy
         age = 0.0f;
-        random = new Random();
+        canReproduce = HumanGender == Gender.Male || true; // Males can always reproduce
+        birthCooldown = HumanGender == Gender.Female ? 10 : 0; // Females have a cooldown period (e.g., 10 ticks)
+        currentCooldown = 0;
         GenerateNewDirection();
     }
 
     public void Move(Map map, List<Food> foodItems, List<Human> humans)
     {
+        // Check if female is in cooldown period
+        if (HumanGender == Gender.Female && currentCooldown > 0)
+        {
+            currentCooldown--;
+            if (currentCooldown == 0)
+                canReproduce = true; // Female can reproduce again after cooldown
+        }
+
         // Check for nearby food
         Food nearestFood = FindNearestFood(foodItems);
         if (nearestFood != null && GetDistance(Position, nearestFood.Position) < 1.0)
@@ -77,7 +96,7 @@ public class Human
 
     public bool IsAlive()
     {
-        return energy > 0; //age < Lifespan && ;
+        return energy > 0 && age < Lifespan;
     }
 
     public void Eat()
@@ -87,9 +106,14 @@ public class Human
 
     public Human Reproduce(Human partner)
     {
+        // Ensure reproduction only happens between male and female
+        if (HumanGender == partner.HumanGender || !canReproduce || !partner.canReproduce)
+            return null;
+
         float childSpeed = MutateTrait((Speed + partner.Speed) / 2);
         float childLifespan = MutateTrait((Lifespan + partner.Lifespan) / 2);
         float childEnergyEfficiency = MutateTrait((EnergyEfficiency + partner.EnergyEfficiency) / 2);
+        Gender childGender = (random.NextDouble() < 0.5) ? Gender.Male : Gender.Female; // Random gender
 
         // Add a small random offset to the child's position
         Vector2 childPosition = new Vector2(
@@ -97,7 +121,20 @@ public class Human
             Position.y + (float)(random.NextDouble() * 2 - 1)  // Random offset [-1, 1]
         );
 
-        Human child = new Human(childPosition, childSpeed, childLifespan, childEnergyEfficiency);
+        Human child = new Human(childPosition, childGender, childSpeed, childLifespan, childEnergyEfficiency);
+
+        // Female enters cooldown period
+        if (HumanGender == Gender.Female)
+        {
+            canReproduce = false;
+            currentCooldown = birthCooldown;
+        }
+
+        if (partner.HumanGender == Gender.Female)
+        {
+            partner.canReproduce = false;
+            partner.currentCooldown = partner.birthCooldown;
+        }
 
         // Make both parents and the child move in new random directions
         GenerateNewDirection(); // This human
@@ -154,10 +191,11 @@ public class Human
 
         foreach (var human in humans)
         {
-            if (human == this) continue; // Skip self
+            if (human == null) continue; // Skip null entries
+            if (human == this || human.HumanGender == HumanGender) continue; // Skip self and same gender
 
             double distance = GetDistance(Position, human.Position);
-            if (distance < 5.0 && distance < nearestDistance) // Within 5 units
+            if (distance < nearestDistance) // Check for nearest human
             {
                 nearestHuman = human;
                 nearestDistance = distance;

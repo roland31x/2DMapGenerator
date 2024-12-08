@@ -20,6 +20,7 @@ using Windows.Media.Control;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI;
+using static _2DMapGenerator.Human;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -418,6 +419,8 @@ namespace _2DMapGenerator
 
             foreach (var human in humans)
             {
+                if (human == null)
+                    continue;
                 // Check if human is alive before moving
                 if (!human.IsAlive())
                 {
@@ -448,6 +451,7 @@ namespace _2DMapGenerator
                 {
                     foreach (var otherHuman in humans)
                     {
+                        if (otherHuman == null) continue;
                         if (human != otherHuman &&
                             (int)human.Position.x == (int)otherHuman.Position.x &&
                             (int)human.Position.y == (int)otherHuman.Position.y)
@@ -481,9 +485,9 @@ namespace _2DMapGenerator
 
         private void DisplayTraitStatistics()
         {
-            float avgSpeed = humans.Count > 0 ? humans.Average(h => h.Speed) : 0;
-            float avgLifespan = humans.Count > 0 ? humans.Average(h => h.Lifespan) : 0;
-            float avgEnergyEfficiency = humans.Count > 0 ? humans.Average(h => h.EnergyEfficiency) : 0;
+            float avgSpeed = humans.Count > 0 ? humans.Where(h => h != null).Average(h => h.Speed) : 0;
+            float avgLifespan = humans.Count > 0 ? humans.Where(h => h != null).Average(h => h.Lifespan) : 0;
+            float avgEnergyEfficiency = humans.Count > 0 ? humans.Where(h => h != null).Average(h => h.EnergyEfficiency) : 0;
 
             InfoBlock.Text = $"Avg Speed: {avgSpeed:F2}, Avg Lifespan: {avgLifespan:F2}, Avg Efficiency: {avgEnergyEfficiency:F2}";
         }
@@ -531,19 +535,34 @@ namespace _2DMapGenerator
                 }
             }
 
-            // Overlay humans (red dots)
+            // Overlay humans (males blue, females pink)
             foreach (var human in humans)
             {
+                if (human == null)
+                    continue;
+                if (!human.IsAlive())
+                    continue;
                 int x = (int)human.Position.x;
                 int y = (int)human.Position.y;
 
                 if (x >= 0 && x < width && y >= 0 && y < height)
                 {
                     int pixelIndex = (y * width + x) * 4;
-                    pixelData[pixelIndex] = 255;     // Blue
-                    pixelData[pixelIndex + 1] = 0;   // Green
-                    pixelData[pixelIndex + 2] = 0;   // Red
-                    pixelData[pixelIndex + 3] = 255; // Alpha
+
+                    if (human.HumanGender == Human.Gender.Male)
+                    {
+                        pixelData[pixelIndex] = 255;     // Blue
+                        pixelData[pixelIndex + 1] = 0;   // Green
+                        pixelData[pixelIndex + 2] = 0;   // Red
+                        pixelData[pixelIndex + 3] = 255; // Alpha
+                    }
+                    else if (human.HumanGender == Human.Gender.Female)
+                    {
+                        pixelData[pixelIndex] = 255;     // Blue
+                        pixelData[pixelIndex + 1] = 192; // Green (soft pink)
+                        pixelData[pixelIndex + 2] = 203; // Red
+                        pixelData[pixelIndex + 3] = 255; // Alpha
+                    }
                 }
             }
 
@@ -556,7 +575,6 @@ namespace _2DMapGenerator
 
             MapImg.Source = bitmap;
         }
-
 
         private void HumanSimulationButton_Click(object sender, RoutedEventArgs e)
         {
@@ -572,14 +590,29 @@ namespace _2DMapGenerator
 
             Random random = new Random();
             int humanCount = 50; // Number of humans to simulate
+            int attempts = 0;
+
             for (int i = 0; i < humanCount; i++)
             {
-                humans.Add(new Human(
-                    new Vector2(
-                        random.Next(0, engine.GeneratedMap.Width),
-                        random.Next(0, engine.GeneratedMap.Height)
-                    )
-                ));
+                int x, y;
+                do
+                {
+                    x = random.Next(0, engine.GeneratedMap.Width);
+                    y = random.Next(0, engine.GeneratedMap.Height);
+                    attempts++;
+
+                    // Safety limit to prevent infinite loop in case of insufficient land
+                    if (attempts > 1000)
+                    {
+                        InfoBlock.Text = "Not enough land to place all humans!";
+                        return;
+                    }
+                }
+                while (engine.GeneratedMap[x, y] < 0.3f || engine.GeneratedMap[x, y] > 0.7f);
+
+                // Create a new human at the valid land position
+                Gender randomGender = (random.NextDouble() < 0.5) ? Gender.Male : Gender.Female;
+                humans.Add(new Human(new Vector2(x, y), randomGender));
             }
 
             // Start the human simulation timer
@@ -587,7 +620,6 @@ namespace _2DMapGenerator
             InfoBlock.Text = "Human simulation started.";
             RenderHumansAndFood(); // Initial render
         }
-
 
         private void GenerateFood(Map map, int count)
         {
