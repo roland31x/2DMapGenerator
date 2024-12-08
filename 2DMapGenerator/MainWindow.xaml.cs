@@ -40,6 +40,9 @@ namespace _2DMapGenerator
         double horzoff = 0;
         double vertoff = 0;
 
+        private List<Human> humans = new List<Human>();
+        private DispatcherTimer humanUpdateTimer;
+
         ColorPalette selected = new GrayscalePalette();
 
         public MainWindow()
@@ -62,6 +65,13 @@ namespace _2DMapGenerator
             binding.Mode = BindingMode.TwoWay;
             binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             InfoBlock.SetBinding(TextBox.TextProperty, binding);
+
+            humanUpdateTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(100) // Update every 100ms
+            };
+            humanUpdateTimer.Tick += UpdateHumans;
+
         }
 
         private async void OnGenerationFinished(object sender, EventArgs e)
@@ -394,6 +404,107 @@ namespace _2DMapGenerator
         {
             Overlay.Visibility = Visibility.Collapsed;
             ExportPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void UpdateHumans(object sender, object e)
+        {
+            if (engine.GeneratedMap == null || humans.Count == 0)
+                return;
+
+            foreach (var human in humans)
+            {
+                human.Move();
+
+                // Keep humans within map bounds
+                human.Position = new Vector2(
+                    Math.Max(0, Math.Min(engine.GeneratedMap.Width - 1, human.Position.x)),
+                    Math.Max(0, Math.Min(engine.GeneratedMap.Height - 1, human.Position.y))
+                );
+            }
+
+            RenderHumans();
+        }
+
+
+        private async void RenderHumans()
+        {
+            if (engine.GeneratedMap == null)
+                return;
+
+            int width = engine.GeneratedMap.Width;
+            int height = engine.GeneratedMap.Height;
+            byte[] pixelData = new byte[width * height * 4];
+
+            // Render the gradient map
+            Parallel.For(0, height, y =>
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    Color color = selected.GetColor(engine.GeneratedMap[x, y]);
+                    int pixelIndex = (y * width + x) * 4;
+
+                    pixelData[pixelIndex] = color.B;     // Blue
+                    pixelData[pixelIndex + 1] = color.G; // Green
+                    pixelData[pixelIndex + 2] = color.R; // Red
+                    pixelData[pixelIndex + 3] = color.A; // Alpha
+                }
+            });
+
+            // Overlay humans as red dots
+            foreach (var human in humans)
+            {
+                int x = (int)human.Position.x;
+                int y = (int)human.Position.y;
+
+                // Ensure humans are within bounds
+                if (x >= 0 && x < width && y >= 0 && y < height)
+                {
+                    int pixelIndex = (y * width + x) * 4;
+
+                    pixelData[pixelIndex] = 0;     // Blue
+                    pixelData[pixelIndex + 1] = 0; // Green
+                    pixelData[pixelIndex + 2] = 255; // Red
+                    pixelData[pixelIndex + 3] = 255; // Alpha
+                }
+            }
+
+            // Create a new bitmap and set the pixel data
+            WriteableBitmap bitmap = new WriteableBitmap(width, height);
+            using (Stream stream = bitmap.PixelBuffer.AsStream())
+            {
+                await stream.WriteAsync(pixelData, 0, pixelData.Length);
+            }
+
+            MapImg.Source = bitmap;
+        }
+
+
+        private void HumanSimulationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (engine.GeneratedMap == null)
+            {
+                InfoBlock.Text = "No map generated! Generate a map first.";
+                return;
+            }
+
+            // Initialize humans
+            humans.Clear();
+            Random random = new Random();
+            int humanCount = 50; // Number of humans to simulate
+
+            for (int i = 0; i < humanCount; i++)
+            {
+                humans.Add(new Human
+                (
+                    new Vector2(
+                        random.Next(0, engine.GeneratedMap.Width),
+                        random.Next(0, engine.GeneratedMap.Height)
+                    )
+                ));
+            }
+
+            humanUpdateTimer.Start();
+            InfoBlock.Text = "Human simulation started.";
         }
     }
 

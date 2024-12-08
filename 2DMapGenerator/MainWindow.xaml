@@ -109,7 +109,21 @@
 
                     </Button>
                 </RelativePanel>
-                
+
+                <RelativePanel RelativePanel.AlignVerticalCenterWith="ButtonPanel"
+                               RelativePanel.RightOf="ButtonPanel"
+                               Margin="0,0,0,15">  
+                    <Button x:Name="GenerateButton2"
+                            Background="#afdb74"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Foreground="Black"
+                            Content="Start Simulation"
+                            Margin="15,0,0,0"
+                            Padding="12"
+                            Click="HumanSimulationButton_Click">    
+                    </Button>
+                </RelativePanel>
 
                 <ScrollViewer x:Name="MapContainer"
                               BorderBrush="Gainsboro"
