@@ -496,14 +496,9 @@ namespace _2DMapGenerator
 
         private void DisplayTraitStatistics()
         {
-            float avgSpeed = humans.Count > 0 ? humans.Where(h => h != null).Average(h => h.Speed) : 0;
-            float avgLifespan = humans.Count > 0 ? humans.Where(h => h != null).Average(h => h.Lifespan) : 0;
-            float avgEnergyEfficiency = humans.Count > 0 ? humans.Where(h => h != null).Average(h => h.EnergyEfficiency) : 0;
-
-            string traitStats = $"Avg Speed: {avgSpeed:F2}, Avg Lifespan: {avgLifespan:F2}, Avg Efficiency: {avgEnergyEfficiency:F2}";
-
-            //string societyReport = SocietyReporter.GenerateReport(tribes, humans);
-            InfoBlock.Text = traitStats;// + "\n" + societyReport;
+            // Get the society report from the SocietyReporter class
+            string societyReport = SocietyReporter.GenerateReport(tribes, humans);
+            InfoBlock.Text = societyReport;
         }
 
         private async void RenderHumansAndFood()

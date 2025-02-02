@@ -60,7 +60,60 @@
                              Text="6"
                              TextChanged="RoughnessBox_TextChanged"
                              Margin="0,0,0,5" />
+                    <TextBlock TextAlignment="Center"
+                           Text="View Settings:"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="0,0,0,25" />
 
+                    <TextBlock Width="160"
+                           TextAlignment="Center"
+                           Text="Colors:" />
+                    <ComboBox x:Name="ColorBox"
+                          Width="160"
+                          SelectionChanged="ColorBox_SelectionChanged"
+                          Margin="0,0,0,5">
+                        <ComboBoxItem Content="Grayscale" />
+                        <ComboBoxItem Content="Simple Terrain" />
+                        <ComboBoxItem Content="Terrain" />
+                        <ComboBoxItem Content="Temperature" />
+                    </ComboBox>
+
+                    <TextBlock Width="160"
+                           TextAlignment="Center"
+                           Text="Zoom Mode:" />
+
+                    <ComboBox x:Name="ZoomModeBox"
+                          Width="160"
+                          SelectionChanged="ZoomModeBox_SelectionChanged"
+                          Margin="0,0,0,5">
+                    <ComboBoxItem Content="Zoom Out"
+                                  Tag="Out" />
+                    <ComboBoxItem Content="Zoom In"
+                                  Tag="In"
+                                  IsSelected="True" />
+                    </ComboBox>
+
+                    <TextBlock Width="160"
+                           TextAlignment="Center"
+                           Text="Zoom:" />
+                    <Slider x:Name="ZoomSliderSub"
+                        Minimum="0.1"
+                        Maximum="1"
+                        Value="1"
+                        StepFrequency="0.025"
+                        ValueChanged="ZoomSlider_ValueChanged"
+                        Visibility="Collapsed" />
+                    <Slider x:Name="ZoomSliderSup"
+                        Minimum="1"
+                        Maximum="6"
+                        Value="1"
+                        StepFrequency="0.25"
+                        ValueChanged="ZoomSlider_ValueChanged" />
+                    <TextBox x:Name="ZoomInfo"
+                         IsEnabled="False"
+                         Text="Zoom is Default."
+                         TextAlignment="Center" />
                 </StackPanel>
                 
             </RelativePanel>
@@ -112,7 +165,7 @@
 
                 <RelativePanel RelativePanel.AlignVerticalCenterWith="ButtonPanel"
                                RelativePanel.RightOf="ButtonPanel"
-                               Margin="0,0,0,15">  
+                               Margin="0,0,0,15">
                     <Button x:Name="GenerateButton2"
                             Background="#afdb74"
                             FontSize="22"
@@ -121,7 +174,7 @@
                             Content="Start Simulation"
                             Margin="15,0,0,0"
                             Padding="12"
-                            Click="HumanSimulationButton_Click">    
+                            Click="HumanSimulationButton_Click">
                     </Button>
                 </RelativePanel>
 
@@ -146,80 +199,30 @@
                     <Image x:Name="MapImg" />
                 </ScrollViewer>
 
-                <TextBox x:Name="InfoBlock"
-                            Text="App is idle..."
-                            Margin="0,10,0,0"
-                            RelativePanel.Below="MapContainer"
-                            RelativePanel.AlignLeftWith="MapContainer"
-                            IsEnabled="False"
-                            FontSize="18"
-                            TextAlignment="Center"
-                            Foreground="White"
-                            Width="600"
-                            TextChanged="SeedBox_TextChanged"></TextBox>
-
             </RelativePanel>
             <RelativePanel x:Name="RightPanel"
                            RelativePanel.RightOf="MiddlePanel"
                            RelativePanel.AlignVerticalCenterWith="MiddlePanel"
-                           Width="160"
+                           Width="400"
                            Margin="10,0,0,0">
                 <StackPanel HorizontalAlignment="Center">
-
                     <TextBlock TextAlignment="Center"
-                               Text="View Settings:"
-                               FontSize="24"
-                               FontWeight="Bold"
-                               Margin="0,0,0,25" />
-
-                    <TextBlock Width="160"
-                               TextAlignment="Center"
-                               Text="Colors:" />
-                    <ComboBox x:Name="ColorBox"
-                              Width="160"
-                              SelectionChanged="ColorBox_SelectionChanged"
-                              Margin="0,0,0,5">
-                        <ComboBoxItem Content="Grayscale" />
-                        <ComboBoxItem Content="Simple Terrain" />
-                        <ComboBoxItem Content="Terrain" />
-                        <ComboBoxItem Content="Temperature" />
-                    </ComboBox>
-
-                    <TextBlock Width="160"
-                               TextAlignment="Center"
-                               Text="Zoom Mode:" />
-
-                    <ComboBox x:Name="ZoomModeBox"
-                              Width="160"
-                              SelectionChanged="ZoomModeBox_SelectionChanged"
-                              Margin="0,0,0,5">
-                        <ComboBoxItem Content="Zoom Out"
-                                      Tag="Out" />
-                        <ComboBoxItem Content="Zoom In"
-                                      Tag="In"
-                                      IsSelected="True" />
-                    </ComboBox>
-
-                    <TextBlock Width="160"
-                               TextAlignment="Center"
-                               Text="Zoom:" />
-                    <Slider x:Name="ZoomSliderSub"
-                            Minimum="0.1"
-                            Maximum="1"
-                            Value="1"
-                            StepFrequency="0.025"
-                            ValueChanged="ZoomSlider_ValueChanged"
-                            Visibility="Collapsed" />
-                    <Slider x:Name="ZoomSliderSup"
-                            Minimum="1"
-                            Maximum="6"
-                            Value="1"
-                            StepFrequency="0.25"
-                            ValueChanged="ZoomSlider_ValueChanged" />
-                    <TextBox x:Name="ZoomInfo"
+                        Text="Reports:"
+                        FontSize="24"
+                        FontWeight="Bold"
+                        Margin="0,0,0,25"/>     
+                    <TextBox x:Name="InfoBlock"
+                             Text="App is idle..."
+                             Margin="0,10,0,0"
+                             RelativePanel.Below="MapContainer"
+                             RelativePanel.AlignLeftWith="MapContainer"
                              IsEnabled="False"
-                             Text="Zoom is Default."
-                             TextAlignment="Center" />
+                             FontSize="18"
+                             TextAlignment="Left"
+                             Foreground="White"
+                             Width="400"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True" />
                 </StackPanel>
             </RelativePanel>
 
