@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI;
-
 using static _2DMapGenerator.Human;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -42,7 +41,7 @@ namespace _2DMapGenerator
         private List<Tribe> tribes = new List<Tribe>();
         private DispatcherTimer humanUpdateTimer;
 
-        ColorPalette selected = new GrayscalePalette();
+        ColorPalette selected = new SimpleTerrainPalette();
 
         public MainWindow()
         {
@@ -56,7 +55,7 @@ namespace _2DMapGenerator
             (this.ColorBox.Items[1] as ComboBoxItem).Tag = new SimpleTerrainPalette();
             (this.ColorBox.Items[2] as ComboBoxItem).Tag = new HeightMapPalette();
             (this.ColorBox.Items[3] as ComboBoxItem).Tag = new TemperaturePalette();
-            this.ColorBox.SelectedIndex = 0;
+            this.ColorBox.SelectedIndex = 2;
 
             Binding binding = new Binding();
             binding.Source = engine;
@@ -88,12 +87,12 @@ namespace _2DMapGenerator
                 ExportButton.Visibility = Visibility.Visible;
                 await RenderMap(engine.GeneratedMap);
                 CalcZoom();
-            }  
+            }
             else
                 ExportButton.Visibility = Visibility.Collapsed;
 
-            
-            
+
+
         }
         private void CalcZoom()
         {
@@ -115,7 +114,7 @@ namespace _2DMapGenerator
 
         private async Task RenderMap(Map map)
         {
-            if(map == null)
+            if (map == null)
                 return;
 
             int height = map.Height;
@@ -142,7 +141,7 @@ namespace _2DMapGenerator
             }
             MapImg.Source = bitmap;
             MapImg.Height = height;
-            MapImg.Width = width;        
+            MapImg.Width = width;
 
         }
 
@@ -168,7 +167,7 @@ namespace _2DMapGenerator
 
         private void SeedBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if(SeedBox.Text.Length == 0)
+            if (SeedBox.Text.Length == 0)
             {
                 engine.Seed = null;
                 return;
@@ -188,17 +187,17 @@ namespace _2DMapGenerator
 
             MapContainer.ZoomToFactor((float)e.NewValue);
 
-            if(ZoomInfo == null)
+            if (ZoomInfo == null)
                 return;
-            ZoomInfo.Text = $"Zoom is {Math.Round(e.NewValue,3)}x";
+            ZoomInfo.Text = $"Zoom is {Math.Round(e.NewValue, 3)}x";
         }
 
         private void ZoomModeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(ZoomSliderSub == null || ZoomSliderSup == null)
+            if (ZoomSliderSub == null || ZoomSliderSup == null)
                 return;
 
-            if((string)(ZoomModeBox.SelectedItem as ComboBoxItem).Tag == "Out")
+            if ((string)(ZoomModeBox.SelectedItem as ComboBoxItem).Tag == "Out")
             {
                 if (ZoomSliderSup.Minimum > 1)
                 {
@@ -214,7 +213,7 @@ namespace _2DMapGenerator
                 ZoomSliderSup.Visibility = Visibility.Visible;
             }
 
-            if(ZoomSliderSub.Visibility == Visibility.Visible)
+            if (ZoomSliderSub.Visibility == Visibility.Visible)
                 ZoomSliderSub.Value = ZoomSliderSub.Value;
             else
                 ZoomSliderSup.Value = ZoomSliderSup.Value;
@@ -244,7 +243,7 @@ namespace _2DMapGenerator
 
         private void RoughnessBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if(int.TryParse(RoughnessBox.Text, out int roughness))
+            if (int.TryParse(RoughnessBox.Text, out int roughness))
             {
                 engine.Roughness = roughness;
             }
@@ -252,7 +251,7 @@ namespace _2DMapGenerator
 
         private void HeightBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if(int.TryParse(HeightBox.Text, out int height))
+            if (int.TryParse(HeightBox.Text, out int height))
             {
                 engine.Height = height;
             }
@@ -260,7 +259,7 @@ namespace _2DMapGenerator
 
         private void WidthBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if(int.TryParse(WidthBox.Text, out int width))
+            if (int.TryParse(WidthBox.Text, out int width))
             {
                 engine.Width = width;
             }
@@ -318,15 +317,15 @@ namespace _2DMapGenerator
         private async void PathSelector_Click(object sender, RoutedEventArgs e)
         {
             FolderPicker picker = new FolderPicker();
-            picker.SuggestedStartLocation = PickerLocationId.Desktop; 
+            picker.SuggestedStartLocation = PickerLocationId.Desktop;
             picker.FileTypeFilter.Add("*");
 
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
             WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-            
+
             StorageFolder folder = await picker.PickSingleFolderAsync();
 
-            if(folder == null)
+            if (folder == null)
                 return;
 
             OutputPathBox.Text = folder.Path;
@@ -336,9 +335,9 @@ namespace _2DMapGenerator
         private async void ExportStart_Click(object sender, RoutedEventArgs e)
         {
             bool ready = true;
-            if(ExportImageCheck.IsChecked == false && ExportObjectCheck.IsChecked == false)
+            if (ExportImageCheck.IsChecked == false && ExportObjectCheck.IsChecked == false)
                 ready = false;
-            if(!Directory.Exists(OutputPathBox.Text))
+            if (!Directory.Exists(OutputPathBox.Text))
                 ready = false;
 
             if (!ready)
@@ -360,7 +359,7 @@ namespace _2DMapGenerator
             path += "\\Seed" + engine.Seed;
 
             int number = 0;
-            if(Directory.Exists(path))
+            if (Directory.Exists(path))
             {
                 while (Directory.Exists(path + "_" + number))
                     number++;
@@ -386,7 +385,7 @@ namespace _2DMapGenerator
                 Flyout flyout = new Flyout();
                 flyout.Content = new TextBlock() { Text = "Error exporting: " + ex.Message };
                 flyout.ShowAt(MainGrid);
-            }   
+            }
 
             ExportStart.IsEnabled = true;
             ExportClose.IsEnabled = true;
@@ -395,7 +394,7 @@ namespace _2DMapGenerator
             PathSelector.IsEnabled = true;
             ExportStart.Content = "Export";
             Overlay.Visibility = Visibility.Collapsed;
-            ExportPanel.Visibility = Visibility.Collapsed;   
+            ExportPanel.Visibility = Visibility.Collapsed;
 
         }
 
@@ -418,30 +417,51 @@ namespace _2DMapGenerator
             {
                 if (human == null)
                     continue;
-                // Check if human is alive before moving
+
                 if (!human.IsAlive())
                 {
                     deadHumans.Add(human);
                     continue;
                 }
 
-                // Move the human
-                human.Move(engine.GeneratedMap, foodItems, humans);
+                // Random decision: sometimes farm, sometimes move
+                if (random.NextDouble() < 0.1)  // 10% chance to farm
+                {
+                    human.Farm(engine.GeneratedMap);
+                }
+                else
+                {
+                    human.Move(engine.GeneratedMap, foodItems, humans);
+                }
 
-                // Check if human eats food
-                foreach (var food in foodItems) // Iterate without modifying directly
+                // Check if human eats food (as before)
+                foreach (var food in foodItems.ToList())
                 {
                     if (Math.Abs(human.Position.x - food.Position.x) <= 1 &&
                         Math.Abs(human.Position.y - food.Position.y) <= 1)
                     {
                         human.Eat();
-                        consumedFood.Add(food); // Mark the food for removal
-                        break; // Stop checking further food for this human
+                        consumedFood.Add(food);
+                        break;
                     }
                 }
 
+                // Check for reproduction, theft, etc. as before…
+                // For example, if a human is low on money, they might attempt theft:
+                if (human.Money < 20 && random.NextDouble() < 0.05)
+                {
+                    // Find a nearby target for theft
+                    Human target = humans.FirstOrDefault(h => h != human &&
+                                Math.Abs(h.Position.x - human.Position.x) < 2 &&
+                                Math.Abs(h.Position.y - human.Position.y) < 2 &&
+                                h.Money > 0);
+                    if (target != null)
+                    {
+                        human.Steal(target);
+                    }
+                }
 
-                //Check for reproduction only if not eating in this update cycle
+                // Reproduction logic (unchanged)
                 if (!consumedFood.Any(food =>
                     Math.Abs(human.Position.x - food.Position.x) <= 1 &&
                     Math.Abs(human.Position.y - food.Position.y) <= 1))
@@ -453,34 +473,26 @@ namespace _2DMapGenerator
                         if ((int)human.Position.x == (int)otherHuman.Position.x &&
                             (int)human.Position.y == (int)otherHuman.Position.y)
                         {
-                            // Reproduce only on land
                             int x = (int)Math.Clamp(human.Position.x, 0, engine.GeneratedMap.Width - 1);
                             int y = (int)Math.Clamp(human.Position.y, 0, engine.GeneratedMap.Height - 1);
                             if (engine.GeneratedMap[x, y] >= 0.3f && engine.GeneratedMap[x, y] <= 0.7f)
                             {
-                                newHumans.Add(human.Reproduce(otherHuman));
+                                newHumans.Add(human.Reproduce(otherHuman, engine.GeneratedMap));
                                 break;
                             }
                         }
                     }
                 }
-
             }
 
-            // Remove dead humans
             humans = humans.Except(deadHumans).ToList();
-
-            // Remove consumed food after the loop
             foodItems = foodItems.Except(consumedFood).ToList();
-
-            // Add new humans
             if (newHumans.Count + humans.Count < 500)
-                humans.AddRange(newHumans); // Cap total population
+                humans.AddRange(newHumans);
 
             RenderHumansAndFood();
             DisplayTraitStatistics();
         }
-
 
         private void DisplayTraitStatistics()
         {
@@ -488,7 +500,10 @@ namespace _2DMapGenerator
             float avgLifespan = humans.Count > 0 ? humans.Where(h => h != null).Average(h => h.Lifespan) : 0;
             float avgEnergyEfficiency = humans.Count > 0 ? humans.Where(h => h != null).Average(h => h.EnergyEfficiency) : 0;
 
-            InfoBlock.Text = $"Avg Speed: {avgSpeed:F2}, Avg Lifespan: {avgLifespan:F2}, Avg Efficiency: {avgEnergyEfficiency:F2}";
+            string traitStats = $"Avg Speed: {avgSpeed:F2}, Avg Lifespan: {avgLifespan:F2}, Avg Efficiency: {avgEnergyEfficiency:F2}";
+
+            //string societyReport = SocietyReporter.GenerateReport(tribes, humans);
+            InfoBlock.Text = traitStats;// + "\n" + societyReport;
         }
 
         private async void RenderHumansAndFood()
@@ -534,38 +549,13 @@ namespace _2DMapGenerator
                 }
             }
 
-            foreach (var tribe in tribes)
-            {
-                if (tribe.Allies?.Count < 2) // Limit alliances per tribe
-                {
-                    Tribe potentialAlly = tribes[random.Next(tribes.Count)];
-                    if (potentialAlly != tribe && !tribe.Allies.Contains(potentialAlly))
-                    {
-                        tribe.FormAlliance(potentialAlly);
-                    }
-                }
-                if (tribe.Allies == null) continue;
-
-                foreach (var otherTribe in tribes)
-                {
-                    if (tribe != otherTribe && !tribe.Allies.Contains(otherTribe))
-                    {
-                        // Example: Trigger fight if two tribes are close
-                        Human tribeLeader = tribe.Leader;
-                        Human otherTribeLeader = otherTribe.Leader;
-
-                        tribe.Fight(otherTribe, ref tribes);
-                    }
-                }
-            }
-
-            // Overlay humans (males blue, females pink)
+            // Overlay humans with tribe-specific colors
+            // Overlay humans with tribe-specific colors
             foreach (var human in humans)
             {
-                if (human == null)
+                if (human == null || !human.IsAlive())
                     continue;
-                if (!human.IsAlive())
-                    continue;
+
                 int x = (int)human.Position.x;
                 int y = (int)human.Position.y;
 
@@ -573,20 +563,25 @@ namespace _2DMapGenerator
                 {
                     int pixelIndex = (y * width + x) * 4;
 
+                    // If the human’s tribe is null, use a default color.
+                    Color tribeColor = (human.Tribe != null)
+                        ? human.Tribe.TribeColor
+                        : Color.FromArgb(255, 128, 128, 128);
+
+                    // Adjust color based on gender
                     if (human.HumanGender == Human.Gender.Male)
                     {
-                        pixelData[pixelIndex] = 255;     // Blue
-                        pixelData[pixelIndex + 1] = 0;   // Green
-                        pixelData[pixelIndex + 2] = 0;   // Red
-                        pixelData[pixelIndex + 3] = 255; // Alpha
+                        pixelData[pixelIndex] = (byte)(tribeColor.B * 0.7);
+                        pixelData[pixelIndex + 1] = (byte)(tribeColor.G * 0.7);
+                        pixelData[pixelIndex + 2] = (byte)(tribeColor.R * 0.7);
                     }
-                    else if (human.HumanGender == Human.Gender.Female)
+                    else
                     {
-                        pixelData[pixelIndex] = 255;     // Blue
-                        pixelData[pixelIndex + 1] = 192; // Green (soft pink)
-                        pixelData[pixelIndex + 2] = 203; // Red
-                        pixelData[pixelIndex + 3] = 255; // Alpha
+                        pixelData[pixelIndex] = (byte)(tribeColor.B * 1.3);
+                        pixelData[pixelIndex + 1] = (byte)(tribeColor.G * 1.3);
+                        pixelData[pixelIndex + 2] = (byte)(tribeColor.R * 1.3);
                     }
+                    pixelData[pixelIndex + 3] = 255;
                 }
             }
 
@@ -627,6 +622,9 @@ namespace _2DMapGenerator
                     human.Tribe = randomTribe;
                 }
             }
+
+            // Assign colors to tribes
+            Tribe.AssignTribeColors(tribes);
         }
 
         private void HumanSimulationButton_Click(object sender, RoutedEventArgs e)
