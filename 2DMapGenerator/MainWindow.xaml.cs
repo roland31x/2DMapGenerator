@@ -421,11 +421,14 @@ namespace _2DMapGenerator
                 if (!human.IsAlive())
                 {
                     deadHumans.Add(human);
+                    var tribe = human.Tribe;
+                    human.Tribe?.RemoveMember(human);
+                    if (tribe.Members.Count == 0)
+                        tribes.Remove(tribe);
                     continue;
                 }
 
-                // Random decision: sometimes farm, sometimes move
-                if (random.NextDouble() < 0.1)  // 10% chance to farm
+                if (random.NextDouble() < 0.1)
                 {
                     human.Farm(engine.GeneratedMap);
                 }
@@ -461,7 +464,7 @@ namespace _2DMapGenerator
                     }
                 }
 
-                // Reproduction logic (unchanged)
+                // Reproduction logic
                 if (!consumedFood.Any(food =>
                     Math.Abs(human.Position.x - food.Position.x) <= 1 &&
                     Math.Abs(human.Position.y - food.Position.y) <= 1))
@@ -496,7 +499,6 @@ namespace _2DMapGenerator
 
         private void DisplayTraitStatistics()
         {
-            // Get the society report from the SocietyReporter class
             string societyReport = SocietyReporter.GenerateReport(tribes, humans);
             InfoBlock.Text = societyReport;
         }
@@ -544,8 +546,6 @@ namespace _2DMapGenerator
                 }
             }
 
-            // Overlay humans with tribe-specific colors
-            // Overlay humans with tribe-specific colors
             foreach (var human in humans)
             {
                 if (human == null || !human.IsAlive())
@@ -660,7 +660,7 @@ namespace _2DMapGenerator
                 Gender randomGender = (random.NextDouble() < 0.5) ? Gender.Male : Gender.Female;
                 humans.Add(new Human(new Vector2(x, y), randomGender, tribes));
             }
-            CreateTribes(2);
+            CreateTribes(5);
 
             // Start the human simulation timer
             humanUpdateTimer.Start();

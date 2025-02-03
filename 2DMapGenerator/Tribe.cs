@@ -40,6 +40,8 @@ public class Tribe
     public void RemoveMember(Human human)
     {
         Members.Remove(human);
+        if (Leader == human)
+            UpdateLeader();
         human.Tribe = null;
     }
 

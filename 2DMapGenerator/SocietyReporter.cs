@@ -29,7 +29,8 @@ namespace _2DMapGenerator
                             $"Avg Lifespan: {avgLifespan:F2}\n" +
                             $"Avg Efficiency: {avgEfficiency:F2}\n" +
                             $"Avg Human Wealth: {avgMoney:F2}\n" +
-                            $"Avg Prosperity: {avgProsperity:F2}\n" +
+                            //$"Avg Prosperity: {avgProsperity:F2}\n" +
+                            $"Tribes: {tribes.Count}\n" +
                             $"Crime Report: {crimeReport}";
 
             return report;

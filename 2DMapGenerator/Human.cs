@@ -29,7 +29,7 @@ public class Human
     public float ToolEfficiency { get; private set; }
 
     private bool canReproduce;
-    private int currentCooldown;
+    private float currentCooldown;
     private Random random;
 
     public Human(Vector2 startPosition, Gender gender, List<Tribe> tribes, float speed = 1.0f, float lifespan = 100.0f, float energyEfficiency = 1.0f, Tribe tribe = null)
@@ -40,11 +40,11 @@ public class Human
         Speed = speed;
         Lifespan = Math.Min(lifespan, random.Next(30, 100));
         EnergyEfficiency = energyEfficiency;
-        Energy = 100.0f; // Starting energy
+        Energy = random.Next(10,90); // Starting energy
         Age = 0.0f;
         Parents = new List<Human>();
         canReproduce = HumanGender == Gender.Male || true; // Males can always reproduce
-        BirthCooldown = HumanGender == Gender.Female ? 10 : 0; // Females have a cooldown period (e.g., 10 ticks)
+        BirthCooldown = HumanGender == Gender.Female ? 20 : 2; // Females have a cooldown period
         currentCooldown = 0;
         MinReproductiveAge = 20.0f; // Example: Humans can reproduce starting from age 20
         MaxReproductiveAge = 50.0f; // Example: Humans stop reproducing after age 50
@@ -80,7 +80,7 @@ public class Human
     public void Move(Map map, List<Food> foodItems, List<Human> humans)
     {
         // Check if female is in cooldown period
-        if (HumanGender == Gender.Female && currentCooldown > 0)
+        if (currentCooldown > 0)
         {
             currentCooldown--;
             if (currentCooldown == 0)
@@ -191,6 +191,7 @@ public class Human
 
         // Create the child, passing the parent's tribe
         Human child = new Human(childPosition, childGender, null, childSpeed, childLifespan, childEnergyEfficiency, this.Tribe);
+        Tribe.Members.Add(child);
         child.Parents.Add(this);
         child.Parents.Add(partner);
 
@@ -199,8 +200,8 @@ public class Human
         child.GenerateNewDirection();
 
         // Apply reproduction cooldown
-        BirthCooldown = 20.0f;
-        partner.BirthCooldown = 20.0f;
+        currentCooldown = this.BirthCooldown;
+        partner.currentCooldown = partner.BirthCooldown;
 
         return child;
     }
@@ -273,12 +274,14 @@ public class Human
         return this != null 
             && partner != null
             && partner.HumanGender != this.HumanGender
-            && !this.Parents.Contains(partner)
-            && !partner.Parents.Contains(this)
+            && this.canReproduce && partner.canReproduce
             && Age >= MinReproductiveAge && Age <= MaxReproductiveAge
             && Energy >= ReproductionEnergyThreshold
             && partner.Age >= partner.MinReproductiveAge && partner.Age <= partner.MaxReproductiveAge
-            && partner.Energy >= partner.ReproductionEnergyThreshold;
+            && partner.Energy >= partner.ReproductionEnergyThreshold
+            && !this.Parents.Contains(partner)
+            && !partner.Parents.Contains(this)
+            && (Tribe == partner.Tribe || random.NextDouble() < 0.2); // 20% chance of reproduction between different tribes
     }
 
     private double GetDistance(Vector2 a, Vector2 b)
